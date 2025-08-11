@@ -1,67 +1,25 @@
+// app/index.tsx
+import { Redirect } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { BarcodeInput } from './components/BarcodeInput';
-import { BarcodeScanner } from './components/BarcodeScanner';
-import { HealthAnalysis } from './components/HealthAnalysis';
-import { ProductDisplay } from './components/ProductDisplay';
-import { useBarcode } from './hooks/useBarcode';
+import { ActivityIndicator, View } from 'react-native';
+import { useAuth } from './hooks/useAuth';
 
 export default function Index() {
-  const {
-    barcode,
-    product,
-    healthAnalysis,
-    loading,
-    analyzingHealth,
-    showCamera,
-    scanned,
-    setBarcode,
-    fetchProductData,
-    handleBarcodeScanned,
-    startScanning,
-    setShowCamera,
-  } = useBarcode();
+  const { user, initializing } = useAuth();
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Open Food Facts API Test</Text>
-      
-      {showCamera ? (
-        <BarcodeScanner
-          onBarcodeScanned={handleBarcodeScanned}
-          onCancel={() => setShowCamera(false)}
-          scanned={scanned}
-        />
-      ) : (
-        <>
-          <BarcodeInput
-            barcode={barcode}
-            onBarcodeChange={setBarcode}
-            onManualFetch={() => fetchProductData()}
-            onScanPress={startScanning}
-            loading={loading}
-          />
-          
-          <ProductDisplay product={product} showRawJson={false} />
-          
-          <HealthAnalysis analysis={healthAnalysis} loading={analyzingHealth} />
-        </>
-      )}
-    </View>
-  );
+  // Show loading while initializing
+  if (initializing) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F9FAFB' }}>
+        <ActivityIndicator size="large" color="#3FA300" />
+      </View>
+    );
+  }
+
+  // Redirect based on auth state
+  if (user) {
+    return <Redirect href="/(tabs)/scan" />;
+  }
+
+  return <Redirect href="/(auth)/sign-in" />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 30,
-  },
-});
