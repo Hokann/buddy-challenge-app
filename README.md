@@ -1,1 +1,3 @@
-# buddy-challenge-app
+# Holsty
+
+Holistic food scanner app
