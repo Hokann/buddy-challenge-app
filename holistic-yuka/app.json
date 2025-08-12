@@ -14,8 +14,8 @@
       "bundleIdentifier": "com.anonymous.holisticyuka",
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to scan barcodes, take photos, or record videos."
-      }
-
+      },
+      "appleTeamId": "P334X829NJ"
     },
     "android": {
       "adaptiveIcon": {
