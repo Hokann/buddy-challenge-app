@@ -33,7 +33,7 @@ export default function Profile() {
         <Text style={styles.label}>Email:</Text>
         <Text style={styles.email}>{user?.email}</Text>
         <Text style={styles.label}>User ID:</Text>
-        <Text style={styles.userId}>{user?.uid}</Text>
+        <Text style={styles.userId}>{user?.id}</Text>
       </View>
 
       <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>

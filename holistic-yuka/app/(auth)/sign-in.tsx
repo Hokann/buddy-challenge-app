@@ -1,10 +1,11 @@
 // app/(auth)/sign-in.tsx
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
     Alert,
     KeyboardAvoidingView,
     Platform,
+    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -17,6 +18,7 @@ export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { signIn, loading } = useAuth();
+  const router = useRouter();
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -31,15 +33,30 @@ export default function SignIn() {
     // If successful, the auth state change will automatically redirect
   };
 
+  const handleBack = () => {
+    router.back();
+  };
+
   return (
     <KeyboardAvoidingView 
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.content}>
+    {/* Back Button */}
+    <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+      <Text style={styles.backButtonText}>← Back</Text>
+    </TouchableOpacity>
+
+      <ScrollView 
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+
+
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>HealthScan</Text>
+          <Text style={styles.title}>Holsty</Text>
           <Text style={styles.subtitle}>Sign in to continue</Text>
         </View>
 
@@ -81,7 +98,7 @@ export default function SignIn() {
           </TouchableOpacity>
         </View>
 
-        {/* Footer */}
+        {/* Footer - Now with proper spacing */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             Don't have an account?{' '}
@@ -90,7 +107,7 @@ export default function SignIn() {
             </Link>
           </Text>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -101,17 +118,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
   content: {
-    flex: 1,
+    flexGrow: 1, // Changed from flex: 1
     paddingHorizontal: 24,
-    paddingTop: 80,
-    justifyContent: 'space-between',
+    paddingTop: 60,
+    paddingBottom: 40, // Added bottom padding
+  },
+  backButton: {
+    padding: 8,
+    marginTop: 30,
+    marginLeft: 5
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#026A3D',
+    fontWeight: '500',
   },
   header: {
     alignItems: 'center',
     marginBottom: 60,
   },
   title: {
-    fontSize: 32,
+    fontSize: 38,
     fontWeight: '700',
     color: '#026A3D',
     marginBottom: 8,
@@ -121,7 +148,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   form: {
-    flex: 1,
+    marginBottom: 60, // Added margin to push footer down
   },
   inputContainer: {
     marginBottom: 20,
@@ -143,7 +170,7 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
   signInButton: {
-    backgroundColor: '#3FA300',
+    backgroundColor: '#026A3D',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -159,14 +186,14 @@ const styles = StyleSheet.create({
   },
   footer: {
     alignItems: 'center',
-    paddingBottom: 40,
+    marginTop: 'auto', // This pushes the footer to the bottom
   },
   footerText: {
     fontSize: 16,
     color: '#6B7280',
   },
   link: {
-    color: '#3FA300',
+    color: '#026A3D',
     fontWeight: '600',
   },
 });

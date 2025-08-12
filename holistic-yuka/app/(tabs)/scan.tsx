@@ -25,7 +25,7 @@ export default function ScanScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Holistly</Text>
+      <Text style={styles.title}>Holsty</Text>
       
       {showCamera ? (
         <BarcodeScanner
