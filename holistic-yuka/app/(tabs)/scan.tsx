@@ -48,6 +48,11 @@ export default function ScanScreen() {
     console.log('Starting complete scan process for:', barcodeValue);
     
     try {
+      // Reset states before starting
+      setProduct(null);
+      setHealthAnalysis(null);
+      setAnalyzingHealth(false);
+      
       // Step 1: Set the barcode
       setBarcode(barcodeValue);
       
@@ -83,7 +88,11 @@ export default function ScanScreen() {
       
     } catch (error) {
       console.error('Error in complete scan process:', error);
+      
+      // Reset all states on error
       setAnalyzingHealth(false);
+      setProduct(null);
+      setHealthAnalysis(null);
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       if (errorMessage.includes('Rate limit')) {
@@ -296,7 +305,7 @@ export default function ScanScreen() {
           </View>
           
           <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-            <ProductDisplay product={product} showRawJson={false} />
+            {product && <ProductDisplay product={product} showRawJson={false} />}
             <HealthAnalysis analysis={healthAnalysis} loading={analyzingHealth} />
           </ScrollView>
         </View>
