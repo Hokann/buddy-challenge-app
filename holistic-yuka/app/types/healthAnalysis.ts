@@ -1,16 +1,16 @@
+// types/healthAnalysis.ts
 export interface RedFlag {
   category: string;
   issue: string;
-  severity: 'low' | 'medium' | 'high';
   explanation: string;
+  severity: 'low' | 'medium' | 'high';
 }
 
 export interface SubScores {
   nutrition: number;
+  processing: number;
   additives: number;
-  oils: number;
-  toxins: number;
-  allergens: number;
+  [key: string]: number;
 }
 
 export interface HealthAnalysis {

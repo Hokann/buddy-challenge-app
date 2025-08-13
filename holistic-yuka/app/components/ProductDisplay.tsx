@@ -9,7 +9,7 @@ interface ProductDisplayProps {
 
 export const ProductDisplay: React.FC<ProductDisplayProps> = ({ 
   product, 
-  showRawJson = true 
+  showRawJson = false 
 }) => {
   if (!product) {
     return null; // Don't show anything if no product
@@ -26,38 +26,129 @@ export const ProductDisplay: React.FC<ProductDisplayProps> = ({
     );
   }
 
+  const getNutriscoreColor = (grade: string) => {
+    switch (grade?.toLowerCase()) {
+      case 'a': return '#3FA300';
+      case 'b': return '#85D996';
+      case 'c': return '#FCD34D';
+      case 'd': return '#FB923C';
+      case 'e': return '#EF4444';
+      default: return '#9CA3AF';
+    }
+  };
+
+  const getNovaColor = (group: number) => {
+    switch (group) {
+      case 1: return '#3FA300';
+      case 2: return '#85D996';
+      case 3: return '#FCD34D';
+      case 4: return '#EF4444';
+      default: return '#9CA3AF';
+    }
+  };
+
   // Formatted display - clean product info
   return (
-    <View style={styles.productInfoContainer}>
-      <Text style={styles.productName}>
-        {product.product_name_en || product.product_name || 'Unknown Product'}
-      </Text>
-      
-      {product.brands && (
-        <Text style={styles.info}>🏢 {product.brands}</Text>
-      )}
-      
-      {product.categories_en && (
-        <Text style={styles.info}>📁 {product.categories_en}</Text>
-      )}
-      
-      <View style={styles.badgeContainer}>
-        {product.nutriscore_grade && (
-          <View style={[styles.badge, styles.nutriscoreBadge]}>
-            <Text style={styles.badgeText}>
-              Nutri-Score: {product.nutriscore_grade.toUpperCase()}
-            </Text>
+    <View style={styles.productCard}>
+      {/* Product Header */}
+      <View style={styles.productHeader}>
+        {/* Product Image Placeholder */}
+        <View style={styles.productImageContainer}>
+          <View style={styles.productImage}>
+            <Text style={styles.productImageIcon}>📦</Text>
           </View>
-        )}
+        </View>
         
-        {product.nova_group && (
-          <View style={[styles.badge, styles.novaBadge]}>
-            <Text style={styles.badgeText}>
-              NOVA: {product.nova_group}
-            </Text>
-          </View>
-        )}
+        {/* Product Info */}
+        <View style={styles.productInfo}>
+          <Text style={styles.productName}>
+            {product.product_name_en || product.product_name || 'Unknown Product'}
+          </Text>
+          
+          {product.brands && (
+            <Text style={styles.productBrand}>🏢 {product.brands}</Text>
+          )}
+          
+          {product.categories_en && (
+            <Text style={styles.productCategory}>📁 {product.categories_en}</Text>
+          )}
+        </View>
       </View>
+
+      {/* Badges Section */}
+      <View style={styles.badgesSection}>
+        <Text style={styles.badgesTitle}>Quality Scores</Text>
+        <View style={styles.badgeContainer}>
+          {product.nutriscore_grade && (
+            <View style={styles.badgeWrapper}>
+              <View style={[
+                styles.badge,
+                { backgroundColor: getNutriscoreColor(product.nutriscore_grade) }
+              ]}>
+                <Text style={styles.badgeLabel}>Nutri-Score</Text>
+                <Text style={styles.badgeValue}>
+                  {product.nutriscore_grade.toUpperCase()}
+                </Text>
+              </View>
+            </View>
+          )}
+          
+          {product.nova_group && (
+            <View style={styles.badgeWrapper}>
+              <View style={[
+                styles.badge,
+                { backgroundColor: getNovaColor(product.nova_group) }
+              ]}>
+                <Text style={styles.badgeLabel}>NOVA</Text>
+                <Text style={styles.badgeValue}>
+                  {product.nova_group}
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Nutrition Preview */}
+      {product.nutriments && (
+        <View style={styles.nutritionSection}>
+          <Text style={styles.nutritionTitle}>Key Nutrition (per 100g)</Text>
+          <View style={styles.nutritionGrid}>
+            {product.nutriments.energy && (
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>
+                  {Math.round(Number(product.nutriments.energy))} kJ
+                </Text>
+                <Text style={styles.nutritionLabel}>Energy</Text>
+              </View>
+            )}
+            {product.nutriments.sugars_100g && (
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>
+                  {product.nutriments.sugars_100g}g
+                </Text>
+                <Text style={styles.nutritionLabel}>Sugar</Text>
+              </View>
+            )}
+            {product.nutriments.salt_100g && (
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>
+                  {product.nutriments.salt_100g}g
+                </Text>
+                <Text style={styles.nutritionLabel}>Salt</Text>
+              </View>
+            )}
+            {product.nutriments.fat_100g && (
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>
+                  {product.nutriments.fat_100g}g
+                </Text>
+                <Text style={styles.nutritionLabel}>Fat</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -79,53 +170,126 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     lineHeight: 18,
   },
-  emptyText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  productInfoContainer: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
+  productCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginHorizontal: 24,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  productHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16,
+    marginBottom: 20,
+  },
+  productImageContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  productImage: {
+    width: 64,
+    height: 64,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  productImageIcon: {
+    fontSize: 24,
+  },
+  productInfo: {
+    flex: 1,
+    gap: 4,
   },
   productName: {
     fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#333',
+    fontWeight: '700',
+    color: '#1F2937',
+    lineHeight: 26,
+    marginBottom: 8,
   },
-  info: {
+  productBrand: {
     fontSize: 16,
-    marginBottom: 6,
-    color: '#666',
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  productCategory: {
+    fontSize: 14,
+    color: '#9CA3AF',
+  },
+  badgesSection: {
+    marginBottom: 20,
+  },
+  badgesTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
   },
   badgeContainer: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
+    gap: 12,
+  },
+  badgeWrapper: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   badge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    borderRadius: 12,
   },
-  nutriscoreBadge: {
-    backgroundColor: '#E3F2FD',
-  },
-  novaBadge: {
-    backgroundColor: '#FFF3E0',
-  },
-  badgeText: {
+  badgeLabel: {
     fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 4,
+  },
+  badgeValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  nutritionSection: {
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    paddingTop: 20,
+  },
+  nutritionTitle: {
+    fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#374151',
+    marginBottom: 12,
+  },
+  nutritionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  nutritionItem: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  nutritionValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  nutritionLabel: {
+    fontSize: 12,
+    color: '#6B7280',
   },
 });

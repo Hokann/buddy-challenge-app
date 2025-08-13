@@ -18,6 +18,15 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
+        name="scanHistory"
+        options={{
+          title: 'History',
+          tabBarIcon: ({ color, size }) => (
+            <Text style={{ fontSize: size, color }}>📋</Text>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="scan"
         options={{
           title: 'Scan',
