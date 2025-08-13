@@ -6,6 +6,8 @@ import { HealthAnalysis } from '../components/HealthAnalysis';
 import { ProductDisplay } from '../components/ProductDisplay';
 import { useBarcode } from '../hooks/useBarcode';
 import { useScanHistory } from '../hooks/useScanHistory';
+import { openFoodFactsService } from '../services/openFoodFacts';
+import { geminiAIService } from '../services/geminiAI';
 
 export default function ScanScreen() {
   const [showManualInput, setShowManualInput] = useState(false);
@@ -25,8 +27,9 @@ export default function ScanScreen() {
     showCamera,
     scanned,
     setBarcode,
-    fetchProductData,
-    handleBarcodeScanned,
+    setProduct,
+    setHealthAnalysis,
+    setAnalyzingHealth,
     startScanning,
     setShowCamera,
   } = useBarcode();
@@ -39,6 +42,59 @@ export default function ScanScreen() {
       setShowAnalysisModal(true);
     }
   }, [product, healthAnalysis, analyzingHealth, isProcessing]);
+
+  // Complete scan process: scan → fetch product → analyze → save to history
+  const processCompleteScan = async (barcodeValue: string) => {
+    console.log('Starting complete scan process for:', barcodeValue);
+    
+    try {
+      // Step 1: Set the barcode
+      setBarcode(barcodeValue);
+      
+      // Step 2: Fetch product data
+      console.log('Step 1: Fetching product data...');
+      const productResponse = await openFoodFactsService.getProduct(barcodeValue);
+      
+      if (productResponse.status !== 1 || !productResponse.product) {
+        setProduct(null);
+        setHealthAnalysis(null);
+        Alert.alert('Product Not Found', 'This barcode is not in the database.');
+        return;
+      }
+      
+      const productData = productResponse.product;
+      setProduct(productData);
+      console.log('Step 1 complete: Product data fetched');
+      
+      // Step 3: Analyze health
+      console.log('Step 2: Analyzing health...');
+      setAnalyzingHealth(true);
+      const analysisData = await geminiAIService.analyzeProductHealth(productData);
+      setHealthAnalysis(analysisData);
+      setAnalyzingHealth(false);
+      console.log('Step 2 complete: Health analysis done');
+      
+      // Step 4: Save to history
+      console.log('Step 3: Saving to history...');
+      await saveCompletedScanToHistory(barcodeValue, productData, analysisData);
+      console.log('Step 3 complete: Saved to history');
+      
+      console.log('Complete scan process finished successfully');
+      
+    } catch (error) {
+      console.error('Error in complete scan process:', error);
+      setAnalyzingHealth(false);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      if (errorMessage.includes('Rate limit')) {
+        Alert.alert('Rate Limit Exceeded', 'Too many requests. Please wait a moment before trying again.');
+      } else if (errorMessage.includes('API key')) {
+        Alert.alert('Configuration Error', 'Gemini API key not configured. Please check your setup.');
+      } else {
+        Alert.alert('Error', `Failed to process scan: ${errorMessage}`);
+      }
+    }
+  };
 
   // Enhanced barcode handler that prevents duplicates
   const handleScanComplete = async (data: any) => {
@@ -53,35 +109,34 @@ export default function ScanScreen() {
     console.log('Processing new scan:', scannedBarcode);
     setIsProcessing(true);
     lastProcessedBarcode.current = scannedBarcode;
+    setShowCamera(false);
     
     try {
-      await handleBarcodeScanned(data);
+      await processCompleteScan(scannedBarcode);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Save to history when we have both product and analysis (only once)
-  useEffect(() => {
-    if (product && healthAnalysis && barcode && !isProcessing) {
-      // Check if this exact scan is already in history to prevent duplicates
-      const existingInHistory = scanHistory.some(item => 
-        item.barcode === barcode && 
-        item.product?.code === product.code
-      );
-      
-      if (!existingInHistory) {
-        console.log('Saving to history:', barcode);
-        addScanToHistory({
-          id: `${barcode}-${Date.now()}`,
-          barcode: barcode,
-          product,
-          analysis: healthAnalysis,
-          timestamp: new Date(),
-        });
-      }
+  // Helper function to save completed scan to history
+  const saveCompletedScanToHistory = async (barcodeValue: string, productData: any, analysisData: any) => {
+    // Check if this exact scan is already in history to prevent duplicates
+    const existingInHistory = scanHistory.some(item => 
+      item.barcode === barcodeValue && 
+      item.product?.code === productData.code
+    );
+    
+    if (!existingInHistory) {
+      console.log('Saving completed scan to history:', barcodeValue);
+      await addScanToHistory({
+        id: `${barcodeValue}-${Date.now()}`,
+        barcode: barcodeValue,
+        product: productData,
+        analysis: analysisData,
+        timestamp: new Date(),
+      });
     }
-  }, [product, healthAnalysis, barcode, isProcessing]);
+  };
 
   const handleManualSubmit = async () => {
     if (!manualBarcode.trim()) {
@@ -96,12 +151,12 @@ export default function ScanScreen() {
     
     setIsProcessing(true);
     lastProcessedBarcode.current = manualBarcode;
+    const barcodeToProcess = manualBarcode;
     
     try {
-      setBarcode(manualBarcode);
       setShowManualInput(false);
-      await fetchProductData();
       setManualBarcode('');
+      await processCompleteScan(barcodeToProcess);
     } finally {
       setIsProcessing(false);
     }

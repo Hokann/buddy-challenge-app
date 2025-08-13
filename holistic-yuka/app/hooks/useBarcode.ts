@@ -135,6 +135,9 @@ export const useBarcode = () => {
     
     // Actions
     setBarcode,
+    setProduct,
+    setHealthAnalysis,
+    setAnalyzingHealth,
     fetchProductData,
     analyzeProductHealth,
     handleBarcodeScanned,

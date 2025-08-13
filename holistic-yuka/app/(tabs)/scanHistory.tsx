@@ -164,13 +164,23 @@ export default function ScanHistoryScreen() {
 
       {/* History List */}
       {scanHistory.length === 0 ? (
-        <View style={styles.emptyState}>
+        <ScrollView
+          contentContainerStyle={styles.emptyState}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#026A3D']}
+              tintColor="#026A3D"
+            />
+          }
+        >
           <Text style={styles.emptyIcon}>📋</Text>
           <Text style={styles.emptyTitle}>No scans yet</Text>
           <Text style={styles.emptySubtitle}>
             Your scanned products will appear here{user ? ' and sync across devices' : ''}
           </Text>
-        </View>
+        </ScrollView>
       ) : (
         <FlatList
           data={scanHistory}
