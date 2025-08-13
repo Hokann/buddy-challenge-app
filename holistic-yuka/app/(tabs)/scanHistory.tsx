@@ -1,26 +1,31 @@
 // app/(tabs)/scanHistory.tsx
 import React, { useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  FlatList,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import { HealthAnalysis } from '../components/HealthAnalysis';
 import { ProductDisplay } from '../components/ProductDisplay';
-import { useScanHistory } from '../hooks/useScanHistory';
+import { useScanHistory, ScanHistoryItem } from '../hooks/useScanHistory';
+import { useAuth } from '../hooks/useAuth';
 
 export default function ScanHistoryScreen() {
-  const [selectedScan, setSelectedScan] = useState(null);
+  const [selectedScan, setSelectedScan] = useState<ScanHistoryItem | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   
-  const { scanHistory, clearHistory, removeScanFromHistory } = useScanHistory();
+  const { scanHistory, loading, clearHistory, removeScanFromHistory } = useScanHistory();
+  const { user } = useAuth();
 
-  const openScanDetail = (scan) => {
+  const openScanDetail = (scan: ScanHistoryItem) => {
     setSelectedScan(scan);
     setShowDetailModal(true);
   };
@@ -45,7 +50,7 @@ export default function ScanHistoryScreen() {
     );
   };
 
-  const handleRemoveScan = (scanId) => {
+  const handleRemoveScan = (scanId: string) => {
     Alert.alert(
       'Remove Scan',
       'Remove this scan from your history?',
@@ -60,13 +65,18 @@ export default function ScanHistoryScreen() {
     );
   };
 
-  const getScoreColor = (score) => {
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  const getScoreColor = (score: number) => {
     if (score >= 80) return '#34C759';
     if (score >= 60) return '#FF9500';
     return '#FF3B30';
   };
 
-  const formatDate = (date) => {
+  const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -75,7 +85,7 @@ export default function ScanHistoryScreen() {
     });
   };
 
-  const renderScanItem = ({ item }) => (
+  const renderScanItem = ({ item }: { item: ScanHistoryItem }) => (
     <TouchableOpacity 
       style={styles.scanItem}
       onPress={() => openScanDetail(item)}
@@ -123,6 +133,15 @@ export default function ScanHistoryScreen() {
     </TouchableOpacity>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#026A3D" />
+        <Text style={styles.loadingText}>Loading scan history...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -130,6 +149,7 @@ export default function ScanHistoryScreen() {
         <Text style={styles.title}>Scan History</Text>
         <Text style={styles.subtitle}>
           {scanHistory.length} scanned product{scanHistory.length !== 1 ? 's' : ''}
+          {user && ' • Cloud synced'}
         </Text>
         
         {scanHistory.length > 0 && (
@@ -148,7 +168,7 @@ export default function ScanHistoryScreen() {
           <Text style={styles.emptyIcon}>📋</Text>
           <Text style={styles.emptyTitle}>No scans yet</Text>
           <Text style={styles.emptySubtitle}>
-            Your scanned products will appear here
+            Your scanned products will appear here{user ? ' and sync across devices' : ''}
           </Text>
         </View>
       ) : (
@@ -158,6 +178,14 @@ export default function ScanHistoryScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#026A3D']}
+              tintColor="#026A3D"
+            />
+          }
         />
       )}
 
@@ -193,6 +221,11 @@ export default function ScanHistoryScreen() {
                   <Text style={styles.metadataText}>
                     Scanned: {formatDate(selectedScan.timestamp)}
                   </Text>
+                  {user && (
+                    <Text style={styles.metadataText}>
+                      Status: Cloud synced ☁️
+                    </Text>
+                  )}
                 </View>
               </>
             )}
@@ -207,6 +240,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6B7280',
   },
   header: {
     paddingTop: 60,
