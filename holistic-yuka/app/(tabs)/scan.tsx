@@ -120,22 +120,14 @@ export default function ScanScreen() {
 
   // Helper function to save completed scan to history
   const saveCompletedScanToHistory = async (barcodeValue: string, productData: any, analysisData: any) => {
-    // Check if this exact scan is already in history to prevent duplicates
-    const existingInHistory = scanHistory.some(item => 
-      item.barcode === barcodeValue && 
-      item.product?.code === productData.code
-    );
-    
-    if (!existingInHistory) {
-      console.log('Saving completed scan to history:', barcodeValue);
-      await addScanToHistory({
-        id: `${barcodeValue}-${Date.now()}`,
-        barcode: barcodeValue,
-        product: productData,
-        analysis: analysisData,
-        timestamp: new Date(),
-      });
-    }
+    console.log('Saving completed scan to history:', barcodeValue);
+    await addScanToHistory({
+      id: `${barcodeValue}-${Date.now()}`,
+      barcode: barcodeValue,
+      product: productData,
+      analysis: analysisData,
+      timestamp: new Date(),
+    });
   };
 
   const handleManualSubmit = async () => {

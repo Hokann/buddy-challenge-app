@@ -1,5 +1,5 @@
 // app/(tabs)/scanHistory.tsx
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Alert,
   FlatList,
@@ -12,18 +12,43 @@ import {
   ActivityIndicator,
   RefreshControl
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { HealthAnalysis } from '../components/HealthAnalysis';
 import { ProductDisplay } from '../components/ProductDisplay';
 import { useScanHistory, ScanHistoryItem } from '../hooks/useScanHistory';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../supabaseConfig';
 
 export default function ScanHistoryScreen() {
   const [selectedScan, setSelectedScan] = useState<ScanHistoryItem | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   
-  const { scanHistory, loading, clearHistory, removeScanFromHistory } = useScanHistory();
+  const { scanHistory, loading, clearHistory, removeScanFromHistory, refreshHistory } = useScanHistory();
   const { user } = useAuth();
+
+  // Log when tab gains focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log('scanHistory page');
+      // Fetch scans from Supabase if user is logged in
+       if (user) {
+                 console.log('Fetching scans from Supabase for user:', user.id);
+                 supabase
+                   .from('scan_history')
+                   .select('*')
+                   .eq('user_id', user.id)
+                   .order('scanned_at', { ascending: false })
+                   .then(({ data, error }) => {
+                     if (error) {
+                       console.error('Error fetching scans:', error);
+                     } else {
+                       console.log('Fetched', data?.length || 0, 'scans from Supabase');
+                     }
+                   });
+               }
+             }, [user])
+  );
 
   const openScanDetail = (scan: ScanHistoryItem) => {
     setSelectedScan(scan);
@@ -67,7 +92,13 @@ export default function ScanHistoryScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
+    try {
+      console.log('Pull to refresh: Calling refreshHistory...');
+      await refreshHistory();
+      console.log('Pull to refresh: RefreshHistory completed');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const getScoreColor = (score: number) => {
