@@ -14,8 +14,13 @@ export default function RootLayout() {
   useEffect(() => {
     const checkOnboarding = async () => {
       if (user) {
+        console.log('🔍 Layout: Checking onboarding status for user:', user.email)
         const completed = await hasCompletedOnboarding();
+        console.log('📊 Layout: Onboarding complete status:', completed)
         setOnboardingComplete(completed);
+      } else {
+        console.log('🔍 Layout: No user, setting onboarding complete to null')
+        setOnboardingComplete(null);
       }
     };
     
@@ -23,34 +28,40 @@ export default function RootLayout() {
   }, [user]);
 
   useEffect(() => {
-    console.log('Layout useEffect triggered:', {
+    console.log('🔄 Layout: Navigation useEffect triggered:', {
       initializing,
       user: user ? user.email : 'None',
       onboardingComplete
     });
 
     if (initializing || (user && onboardingComplete === null)) {
-      console.log('Layout: Still loading, skipping navigation');
+      console.log('⏳ Layout: Still loading, skipping navigation');
       return; // Don't do anything while initializing
     }
 
     if (user) {
+      console.log('👤 Layout: User is authenticated:', user.email)
       if (onboardingComplete) {
         // User has completed onboarding, go to main app
-        console.log('🚀 Layout: Redirecting authenticated user to scan (onboarding complete)');
+        console.log('✅ Layout: User has completed onboarding')
+        console.log('🚀 Layout: Redirecting authenticated user to scan')
         router.replace('/(tabs)/scan');
+      } else {
+        console.log('❌ Layout: User has NOT completed onboarding')
+        console.log('🚀 Layout: Redirecting user to diet preference to start onboarding')
+        router.replace('/(auth)/diet-preference')
       }
-      // If onboarding not complete, let manual navigation handle it
     } else {
       // User is not signed in, show welcome page
-      console.log('🚀 Layout: Redirecting unauthenticated user to welcome');
+      console.log('🚪 Layout: No user authenticated')
+      console.log('🚀 Layout: Redirecting unauthenticated user to welcome')
       router.replace('/welcome');
     }
   }, [user, initializing, onboardingComplete, router]);
 
   // Show loading screen while initializing
-  if (initializing) {
-    console.log('Layout - Showing initialization loading screen');
+  if (initializing || (user && onboardingComplete === null)) {
+    console.log('🔄 Layout: Showing loading screen - initializing:', initializing, 'onboardingComplete:', onboardingComplete);
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#F9FAFB' }}>
         <ActivityIndicator size="large" color="#3FA300" />

@@ -3,6 +3,7 @@ import { Link, useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native'
 import { useAuth } from '../hooks/useAuth'
+import { clearOnboardingStatus } from '../utils/onboarding'
 
 export default function SignUp() {
   const [email, setEmail] = useState('')
@@ -11,27 +12,38 @@ export default function SignUp() {
   const router = useRouter()
 
   const handleSignUp = async () => {
+    console.log('📝 SignUp: handleSignUp called with:', { email, passwordLength: password.length })
+    
     if (!email || !password) {
+      console.log('❌ SignUp: Missing email or password')
       Alert.alert('Error', 'Please fill in all fields')
       return
     }
 
     if (password.length < 6) {
+      console.log('❌ SignUp: Password too short')
       Alert.alert('Error', 'Password must be at least 6 characters')
       return
     }
 
+    console.log('🔄 SignUp: Calling signUp service...')
     const result = await signUp(email, password)
     
     if (result.error) {
+      console.log('❌ SignUp: Error from signUp service:', result.error)
       Alert.alert('Sign Up Error', result.error)
     } else {
-      console.log('Success', 'Account created successfully!')
+      console.log('✅ SignUp: Account created successfully!')
+      console.log('🔄 SignUp: Clearing onboarding status...')
+      // Clear any existing onboarding status for new user
+      await clearOnboardingStatus()
+      console.log('🚀 SignUp: Navigating to diet preference page')
       router.push('/(auth)/diet-preference')
     }
   }
 
   const handleBack = () => {
+    console.log('⬅️ SignUp: Back button pressed')
     router.back()
   }
 
