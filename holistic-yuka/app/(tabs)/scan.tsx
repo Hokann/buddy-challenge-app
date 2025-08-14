@@ -31,6 +31,31 @@ import { getScoreColor } from '../utils/scoreUtils';
 import { formatDate } from '../utils/dateUtils';
 import { ScanListItem } from '../components/ScanListItem';
 
+const DIET_OPTIONS = [
+  'None',
+  'Vegetarian',
+  'Vegan',
+  'Pescatarian',
+  'Keto',
+  'Paleo',
+  'Mediterranean',
+  'Low Carb',
+  'Gluten Free'
+];
+
+const ALLERGY_OPTIONS = [
+  'Nuts',
+  'Peanuts',
+  'Dairy',
+  'Eggs',
+  'Soy',
+  'Wheat/Gluten',
+  'Fish',
+  'Shellfish',
+  'Sesame',
+  'Sulfites'
+];
+
 export default function ScanScreen() {
   const router = useRouter();
   const [showManualInput, setShowManualInput] = useState(false);
@@ -43,6 +68,12 @@ export default function ScanScreen() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [flashEnabled, setFlashEnabled] = useState(false);
+  const [userPreferences, setUserPreferences] = useState<{diet: string | null, allergies: string[] | null}>({diet: null, allergies: null});
+  const [loadingPreferences, setLoadingPreferences] = useState(false);
+  const [editingPreferences, setEditingPreferences] = useState(false);
+  const [editedDiet, setEditedDiet] = useState<string | null>(null);
+  const [editedAllergies, setEditedAllergies] = useState<string[]>([]);
+  const [savingPreferences, setSavingPreferences] = useState(false);
   
   // Keep track of the last processed barcode to prevent duplicates
   const lastProcessedBarcode = useRef<string>('');
@@ -247,7 +278,109 @@ export default function ScanScreen() {
     }
   };
 
+  // Fetch user preferences
+  const fetchUserPreferences = async () => {
+    if (!user) return;
+    
+    setLoadingPreferences(true);
+    try {
+      console.log('📊 Scan: Fetching user preferences for:', user.id);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('diet, allergies')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('📊 Scan: Error fetching preferences:', error);
+      } else {
+        console.log('📊 Scan: User preferences loaded:', data);
+        setUserPreferences({
+          diet: data?.diet || null,
+          allergies: data?.allergies || null
+        });
+      }
+    } catch (error) {
+      console.error('📊 Scan: Error in fetchUserPreferences:', error);
+    } finally {
+      setLoadingPreferences(false);
+    }
+  };
+
   // Profile modal handlers
+  const handleProfilePress = () => {
+    setShowProfileModal(true);
+    fetchUserPreferences();
+  };
+
+  // Preferences editing handlers
+  const startEditingPreferences = () => {
+    console.log('📝 Scan: Starting preferences editing');
+    setEditedDiet(userPreferences.diet || 'None');
+    setEditedAllergies(userPreferences.allergies || []);
+    setEditingPreferences(true);
+  };
+
+  const cancelEditingPreferences = () => {
+    console.log('❌ Scan: Cancelling preferences editing');
+    setEditingPreferences(false);
+    setEditedDiet(null);
+    setEditedAllergies([]);
+  };
+
+  const toggleAllergy = (allergy: string) => {
+    const isSelected = editedAllergies.includes(allergy);
+    if (isSelected) {
+      console.log('🚫 Scan: Deselected allergy:', allergy);
+      setEditedAllergies(prev => prev.filter(a => a !== allergy));
+    } else {
+      console.log('🚫 Scan: Selected allergy:', allergy);
+      setEditedAllergies(prev => [...prev, allergy]);
+    }
+  };
+
+  const savePreferences = async () => {
+    if (!user) {
+      Alert.alert('Error', 'No user found');
+      return;
+    }
+
+    console.log('💾 Scan: Saving preferences:', { diet: editedDiet, allergies: editedAllergies });
+    setSavingPreferences(true);
+
+    try {
+      const dietValue = editedDiet === 'None' ? null : editedDiet;
+      const allergiesValue = editedAllergies.length > 0 ? editedAllergies : null;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          diet: dietValue,
+          allergies: allergiesValue
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('💾 Scan: Error saving preferences:', error);
+        Alert.alert('Error', 'Failed to save preferences');
+      } else {
+        console.log('✅ Scan: Preferences saved successfully');
+        // Update local state
+        setUserPreferences({
+          diet: dietValue,
+          allergies: allergiesValue
+        });
+        setEditingPreferences(false);
+        Alert.alert('Success', 'Preferences updated successfully!');
+      }
+    } catch (error) {
+      console.error('💾 Scan: Error in savePreferences:', error);
+      Alert.alert('Error', 'Something went wrong');
+    } finally {
+      setSavingPreferences(false);
+    }
+  };
+
   const handleSignOut = async () => {
     Alert.alert(
       'Sign Out',
@@ -416,11 +549,8 @@ export default function ScanScreen() {
             
             {/* Right side actions */}
             <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.profileButton} onPress={() => router.push('/(tabs)/profile')}>
+              <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
                 <Ionicons name="person" size={24} color="#026A3D" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.settingsButton} onPress={handleHistoryPress}>
-                <Ionicons name="settings-outline" size={24} color="#026A3D" />
               </TouchableOpacity>
             </View>
           </View>
@@ -643,11 +773,134 @@ export default function ScanScreen() {
           </View>
           <ScrollView style={styles.modalContent}>
             <View style={styles.profileContent}>
-              <View style={styles.userInfo}>
+              {/* Account Section */}
+              <View style={styles.profileSection}>
+                <Text style={styles.sectionTitle}>Account</Text>
                 <Text style={styles.label}>Email:</Text>
                 <Text style={styles.email}>{user?.email}</Text>
-                <Text style={styles.label}>User ID:</Text>
-                <Text style={styles.userId}>{user?.id}</Text>
+              </View>
+
+              {/* Preferences Section */}
+              <View style={styles.profileSection}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Dietary Preferences</Text>
+                  {!editingPreferences && !loadingPreferences && (
+                    <TouchableOpacity 
+                      style={styles.editButton}
+                      onPress={startEditingPreferences}
+                    >
+                      <Ionicons name="pencil" size={16} color="#026A3D" />
+                      <Text style={styles.editButtonText}>Edit</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                
+                {loadingPreferences ? (
+                  <View style={styles.preferencesLoading}>
+                    <ActivityIndicator size="small" color="#026A3D" />
+                    <Text style={styles.loadingText}>Loading preferences...</Text>
+                  </View>
+                ) : editingPreferences ? (
+                  /* Editing Mode */
+                  <View style={styles.editingContainer}>
+                    {/* Diet Selection */}
+                    <View style={styles.editSection}>
+                      <Text style={styles.editSectionTitle}>Diet Preference</Text>
+                      <View style={styles.optionsContainer}>
+                        {DIET_OPTIONS.map((diet) => (
+                          <TouchableOpacity
+                            key={diet}
+                            style={[
+                              styles.optionChip,
+                              editedDiet === diet && styles.selectedOptionChip
+                            ]}
+                            onPress={() => setEditedDiet(diet)}
+                          >
+                            <Text style={[
+                              styles.optionChipText,
+                              editedDiet === diet && styles.selectedOptionChipText
+                            ]}>
+                              {diet}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+
+                    {/* Allergies Selection */}
+                    <View style={styles.editSection}>
+                      <Text style={styles.editSectionTitle}>Allergies</Text>
+                      <Text style={styles.editSectionSubtitle}>Select all that apply</Text>
+                      <View style={styles.optionsContainer}>
+                        {ALLERGY_OPTIONS.map((allergy) => (
+                          <TouchableOpacity
+                            key={allergy}
+                            style={[
+                              styles.optionChip,
+                              editedAllergies.includes(allergy) && styles.selectedOptionChip
+                            ]}
+                            onPress={() => toggleAllergy(allergy)}
+                          >
+                            <Text style={[
+                              styles.optionChipText,
+                              editedAllergies.includes(allergy) && styles.selectedOptionChipText
+                            ]}>
+                              {allergy}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+
+                    {/* Save/Cancel Buttons */}
+                    <View style={styles.editButtonsContainer}>
+                      <TouchableOpacity 
+                        style={[styles.saveButton, savingPreferences && styles.saveButtonDisabled]}
+                        onPress={savePreferences}
+                        disabled={savingPreferences}
+                      >
+                        {savingPreferences ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <Text style={styles.saveButtonText}>Save Changes</Text>
+                        )}
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity 
+                        style={styles.cancelButton}
+                        onPress={cancelEditingPreferences}
+                        disabled={savingPreferences}
+                      >
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  /* Display Mode */
+                  <>
+                    <View style={styles.preferenceItem}>
+                      <Text style={styles.label}>Diet:</Text>
+                      <Text style={styles.preferenceValue}>
+                        {userPreferences.diet || 'None specified'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.preferenceItem}>
+                      <Text style={styles.label}>Allergies:</Text>
+                      {userPreferences.allergies && userPreferences.allergies.length > 0 ? (
+                        <View style={styles.allergiesList}>
+                          {userPreferences.allergies.map((allergy, index) => (
+                            <View key={index} style={styles.allergyTag}>
+                              <Text style={styles.allergyText}>{allergy}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      ) : (
+                        <Text style={styles.preferenceValue}>None specified</Text>
+                      )}
+                    </View>
+                  </>
+                )}
               </View>
 
               <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
@@ -828,6 +1081,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E7F5E7',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 8
   },
   settingsButton: {
     width: 48,
@@ -1320,6 +1574,34 @@ const styles = StyleSheet.create({
   profileContent: {
     padding: 24,
   },
+  profileSection: {
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E7F5E7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+  },
+  editButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#026A3D',
+  },
   label: {
     fontSize: 14,
     fontWeight: '600',
@@ -1331,10 +1613,122 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
   },
-  userId: {
+  preferenceItem: {
+    marginBottom: 16,
+  },
+  preferenceValue: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  preferencesLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  loadingText: {
     fontSize: 14,
-    color: '#9CA3AF',
-    fontFamily: 'monospace',
+    color: '#6B7280',
+    marginLeft: 8,
+  },
+  allergiesList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+  },
+  allergyTag: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  allergyText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#DC2626',
+  },
+  // Editing Mode Styles
+  editingContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 8,
+    borderWidth: 2,
+    borderColor: '#E7F5E7',
+  },
+  editSection: {
+    marginBottom: 24,
+  },
+  editSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#026A3D',
+    marginBottom: 4,
+  },
+  editSectionSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 12,
+  },
+  optionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  optionChip: {
+    backgroundColor: '#F9FAFB',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginBottom: 8,
+  },
+  selectedOptionChip: {
+    backgroundColor: '#026A3D',
+    borderColor: '#026A3D',
+  },
+  optionChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  selectedOptionChipText: {
+    color: '#FFFFFF',
+  },
+  editButtonsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  saveButton: {
+    flex: 1,
+    backgroundColor: '#026A3D',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
   },
   signOutButton: {
     backgroundColor: '#DC2626',
