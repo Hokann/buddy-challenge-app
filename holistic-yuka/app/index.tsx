@@ -18,7 +18,7 @@ export default function Index() {
 
   // Redirect based on auth state
   if (user) {
-    return <Redirect href="/(tabs)/scan" />;
+    return <Redirect href="/scan" />;
   }
 
   return <Redirect href="/(auth)/sign-in" />;

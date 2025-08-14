@@ -1,4 +1,4 @@
-// app/(tabs)/scan.tsx
+// app/scan.tsx
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { 
   Alert, 
@@ -16,16 +16,16 @@ import {
   RefreshControl
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BarcodeScanner } from '../components/BarcodeScanner';
-import { HealthAnalysis } from '../components/HealthAnalysis';
-import { ProductDisplay } from '../components/ProductDisplay';
-import { UserMenu } from '../components/UserMenu';
-import { useBarcode } from '../hooks/useBarcode';
-import { useScanHistory, ScanHistoryItem } from '../hooks/useScanHistory';
-import { useAuth } from '../hooks/useAuth';
-import { openFoodFactsService } from '../services/openFoodFacts';
-import { geminiAIService } from '../services/geminiAI';
-import { supabase } from '../supabaseConfig';
+import { BarcodeScanner } from './components/BarcodeScanner';
+import { HealthAnalysis } from './components/HealthAnalysis';
+import { ProductDisplay } from './components/ProductDisplay';
+import { UserMenu } from './components/UserMenu';
+import { useBarcode } from './hooks/useBarcode';
+import { useScanHistory, ScanHistoryItem } from './hooks/useScanHistory';
+import { useAuth } from './hooks/useAuth';
+import { openFoodFactsService } from './services/openFoodFacts';
+import { geminiAIService } from './services/geminiAI';
+import { supabase } from './supabaseConfig';
 
 export default function ScanScreen() {
   const [showManualInput, setShowManualInput] = useState(false);
@@ -919,183 +919,20 @@ const styles = StyleSheet.create({
   modalContent: {
     flex: 1,
   },
-  profileContent: {
-    padding: 24,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 4,
-    marginTop: 16,
-  },
-  email: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  userId: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    fontFamily: 'monospace',
-  },
-  signOutButton: {
-    backgroundColor: '#DC2626',
-    borderRadius: 8,
-    paddingVertical: 12,
+  placeholderContent: {
+    padding: 40,
     alignItems: 'center',
-    marginTop: 32,
   },
-  signOutButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  historySubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  clearButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#FEE2E2',
-    borderRadius: 6,
-  },
-  clearButtonText: {
-    fontSize: 12,
-    color: '#DC2626',
-    fontWeight: '600',
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 20,
+  placeholderText: {
+    fontSize: 18,
     fontWeight: '600',
     color: '#374151',
     marginBottom: 8,
     textAlign: 'center',
   },
-  emptySubtitle: {
+  placeholderSubtext: {
     fontSize: 14,
     color: '#6B7280',
     textAlign: 'center',
-    lineHeight: 20,
-  },
-  listContainer: {
-    padding: 16,
-  },
-  scanItem: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    position: 'relative',
-  },
-  scanItemHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  productInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  productItemName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  productBrandItem: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  scoreContainer: {
-    alignItems: 'center',
-    minWidth: 60,
-  },
-  scoreText: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  scoreLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  scanItemFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  barcodeText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    fontFamily: 'monospace',
-  },
-  timestampText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  removeButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#FEE2E2',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  removeButtonText: {
-    fontSize: 16,
-    color: '#DC2626',
-    fontWeight: '600',
-  },
-  scanMetadata: {
-    backgroundColor: '#FFFFFF',
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  metadataTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 12,
-  },
-  metadataText: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
   },
 });
