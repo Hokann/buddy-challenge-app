@@ -26,8 +26,8 @@ export default function SignUp() {
     if (result.error) {
       Alert.alert('Sign Up Error', result.error)
     } else {
-      Alert.alert('Success', 'Account created successfully!')
-      // The auth state change will automatically redirect to the main app
+      console.log('Success', 'Account created successfully!')
+      router.push('/(auth)/diet-preference')
     }
   }
 
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
-    marginTop: 30,
+    marginTop: 50,
     marginLeft: 5
   },
   backButtonText: {
