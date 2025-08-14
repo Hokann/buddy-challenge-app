@@ -1,5 +1,5 @@
 // app/(tabs)/scan.tsx
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   Alert, 
   Modal, 
@@ -13,13 +13,14 @@ import {
   StatusBar,
   FlatList,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
+  DeviceEventEmitter
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { HealthAnalysis } from '../components/HealthAnalysis';
 import { ProductDisplay } from '../components/ProductDisplay';
-import { UserMenu } from '../components/UserMenu';
 import { useBarcode } from '../hooks/useBarcode';
 import { useScanHistory, ScanHistoryItem } from '../hooks/useScanHistory';
 import { useAuth } from '../hooks/useAuth';
@@ -31,21 +32,22 @@ import { formatDate } from '../utils/dateUtils';
 import { ScanListItem } from '../components/ScanListItem';
 
 export default function ScanScreen() {
+  const router = useRouter();
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualBarcode, setManualBarcode] = useState('');
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedScan, setSelectedScan] = useState<ScanHistoryItem | null>(null);
   const [showHistoryDetailModal, setShowHistoryDetailModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [flashEnabled, setFlashEnabled] = useState(false);
   
   // Keep track of the last processed barcode to prevent duplicates
   const lastProcessedBarcode = useRef<string>('');
   
   const {
-    barcode,
     product,
     healthAnalysis,
     loading,
@@ -69,6 +71,15 @@ export default function ScanScreen() {
       setShowAnalysisModal(true);
     }
   }, [product, healthAnalysis, analyzingHealth, isProcessing]);
+
+  // Listen for scan trigger from tab bar
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener('triggerScan', () => {
+      startNewScan();
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   // Complete scan process: scan → fetch product → analyze → save to history
   const processCompleteScan = async (barcodeValue: string) => {
@@ -194,6 +205,8 @@ export default function ScanScreen() {
     setShowAnalysisModal(false);
     // Reset the camera for next scan
     setShowCamera(false);
+    // Emit event to show tab bar
+    DeviceEventEmitter.emit('cameraClosed');
     // Clear the last processed barcode after a delay to allow for new scans
     setTimeout(() => {
       lastProcessedBarcode.current = '';
@@ -205,11 +218,14 @@ export default function ScanScreen() {
     lastProcessedBarcode.current = '';
     setIsProcessing(false);
     startScanning();
+    // Emit event to hide tab bar
+    DeviceEventEmitter.emit('cameraOpened');
   };
 
-  const handleProfilePress = () => {
-    setShowProfileModal(true);
+  const toggleFlash = () => {
+    setFlashEnabled(!flashEnabled);
   };
+
 
   const handleHistoryPress = () => {
     setShowHistoryModal(true);
@@ -313,106 +329,220 @@ export default function ScanScreen() {
 
   if (showCamera) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#026A3D" />
-        <View style={styles.scannerContainer}>
-          <BarcodeScanner
-            onBarcodeScanned={handleScanComplete}
-            onCancel={() => {
-              setShowCamera(false);
-              lastProcessedBarcode.current = '';
-              setIsProcessing(false);
-            }}
-            scanned={scanned || isProcessing}
-          />
+      <>
+        <StatusBar barStyle="light-content" backgroundColor="#000000" />
+        <View style={styles.fullScreenCameraContainer}>
+          {/* Camera Header */}
+          <SafeAreaView style={styles.cameraHeader}>
+            <TouchableOpacity 
+              style={styles.cameraBackButton}
+              onPress={() => {
+                setShowCamera(false);
+                lastProcessedBarcode.current = '';
+                setIsProcessing(false);
+                // Emit event to show tab bar
+                DeviceEventEmitter.emit('cameraClosed');
+              }}
+            >
+              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </SafeAreaView>
+
+          {/* Camera Content */}
+          <View style={styles.cameraContent}>
+            {/* Title Section */}
+            <View style={styles.cameraTitleSection}>
+              <Text style={styles.cameraTitle}>Scan a Product</Text>
+            </View>
+
+            {/* Scanner Area */}
+            <View style={styles.scannerArea}>
+              <BarcodeScanner
+                onBarcodeScanned={handleScanComplete}
+                scanned={scanned || isProcessing}
+                hideCancel={true}
+                flashEnabled={flashEnabled}
+              />
+              
+              {/* Scan Frame Overlay */}
+              <View style={styles.scanFrameOverlay}>
+                {/* Corner Frame Indicators */}
+                <View style={styles.scanCorners}>
+                  {/* Top Left */}
+                  <View style={[styles.corner, styles.topLeft]} />
+                  {/* Top Right */}
+                  <View style={[styles.corner, styles.topRight]} />
+                  {/* Bottom Left */}
+                  <View style={[styles.corner, styles.bottomLeft]} />
+                  {/* Bottom Right */}
+                  <View style={[styles.corner, styles.bottomRight]} />
+                </View>
+                
+                
+              </View>
+            </View>
+
+            {/* Flash Button */}
+            <View style={styles.cameraControls}>
+              <TouchableOpacity 
+                style={[styles.flashButton, flashEnabled && styles.flashButtonActive]}
+                onPress={toggleFlash}
+              >
+                <Ionicons 
+                  name={flashEnabled ? "flash" : "flash-off"} 
+                  size={24} 
+                  color={flashEnabled ? "#000000" : "#FFFFFF"} 
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </SafeAreaView>
+      </>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View style={styles.userSection}>
-            <View style={styles.userInfo}>
-              <Text style={styles.greeting}>Hello!</Text>
-              <Text style={styles.userName}>Welcome to Holsty</Text>
+      {/* Fixed Header */}
+      <View style={styles.fixedHeader}>
+        <SafeAreaView style={styles.headerSafeArea}>
+          <View style={styles.headerContent}>
+            {/* Logo */}
+            <View style={styles.logoContainer}>
+              <Text style={styles.logo}>Holsty</Text>
             </View>
-            <UserMenu 
-              onProfilePress={handleProfilePress}
-              onHistoryPress={handleHistoryPress}
-            />
+            
+            {/* Right side actions */}
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.profileButton} onPress={() => router.push('/(tabs)/profile')}>
+                <Ionicons name="person" size={24} color="#026A3D" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.settingsButton} onPress={handleHistoryPress}>
+                <Ionicons name="settings-outline" size={24} color="#026A3D" />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </SafeAreaView>
       </View>
 
-      <View style={styles.mainContent}>
-        {/* Main Scan Button */}
-        <View style={styles.scanSection}>
-          <Text style={styles.sectionTitle}>Scan Product</Text>
-          <Text style={styles.sectionSubtitle}>
-            Scan barcodes to get instant health insights
+      {/* Scrollable Content */}
+      <ScrollView 
+        style={styles.scrollableContent}
+        showsVerticalScrollIndicator={false}
+        bounces={true}
+      >
+        <View style={styles.mainContent}>
+        {/* Central Hero Section with Large Scan Button */}
+        <View style={styles.heroSection}>
+          <View style={styles.scanButtonWrapper}>
+            <TouchableOpacity 
+              style={[styles.mainScanButton, (loading || isProcessing) && styles.scanButtonDisabled]}
+              onPress={startNewScan}
+              disabled={loading || isProcessing}
+              activeOpacity={0.8}
+            >
+              <View style={styles.scanButtonContent}>
+                {loading || isProcessing ? (
+                  <ActivityIndicator size={60} color="#026A3D" />
+                ) : (
+                  <View style={styles.barcodeIconWrapper}>
+                    <Ionicons name="barcode-outline" size={80} color="#026A3D" />
+                    <View style={styles.scanLineAnimation} />
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+            
+            {/* Animated pulse rings */}
+            <View style={styles.pulseRing1} />
+            <View style={styles.pulseRing2} />
+          </View>
+          
+          <Text style={styles.scanLabel}>
+            {loading || isProcessing ? 'Processing...' : 'Tap to scan a product'}
           </Text>
           
-          <TouchableOpacity 
-            style={styles.scanButton}
-            onPress={startNewScan}
-            disabled={loading || isProcessing}
-          >
-            <View style={styles.scanButtonContent}>
-              <View style={styles.scanIconContainer}>
-                <Ionicons name="camera" size={32} color="#FFFFFF" />
-              </View>
-              <Text style={styles.scanButtonText}>
-                {loading || isProcessing ? 'Processing...' : 'Start Scanning'}
-              </Text>
-            </View>
-          </TouchableOpacity>
+          <Text style={styles.scanSubtitle}>
+            Point your camera at any barcode to get instant health insights
+          </Text>
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.actionButtons}>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => setShowManualInput(!showManualInput)}
-              disabled={loading || isProcessing}
-            >
-              <Ionicons name="qr-code" size={24} color="#026A3D" />
-              <Text style={styles.actionButtonText}>Manual Input</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={handleHistoryPress}
-            >
-              <Ionicons name="time" size={24} color="#026A3D" />
-              <Text style={styles.actionButtonText}>Recent Scans</Text>
+        {/* Recent Scans Section */}
+        <View style={styles.recentScansSection}>
+          <View style={styles.recentScansHeader}>
+            <Text style={styles.recentScansTitle}>Recent Scans</Text>
+            <TouchableOpacity onPress={handleHistoryPress}>
+              <Text style={styles.viewAllText}>View All</Text>
             </TouchableOpacity>
           </View>
+          
+          {scanHistory.length > 0 ? (
+            <ScrollView 
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.recentScansScroll}
+            >
+              {scanHistory.slice(0, 5).map((scan, index) => (
+                <TouchableOpacity
+                  key={scan.id}
+                  style={styles.recentScanCard}
+                  onPress={() => openScanDetail(scan)}
+                >
+                  <View style={styles.productImagePlaceholder}>
+                    <Ionicons name="cube-outline" size={32} color="#9CA3AF" />
+                  </View>
+                  <Text style={styles.productName} numberOfLines={2}>
+                    {scan.product?.product_name_en || scan.product?.product_name || 'Unknown Product'}
+                  </Text>
+                  <View style={[styles.warningLevel, { backgroundColor: getScoreColor(scan.analysis?.overall_health_score || 50) }]}>
+                    <Text style={styles.warningLevelText}>
+                      {scan.analysis?.overall_health_score ? Math.round(scan.analysis.overall_health_score) : '?'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          ) : (
+            <View style={styles.emptyRecentScans}>
+              <Ionicons name="scan-outline" size={48} color="#E5E7EB" />
+              <Text style={styles.emptyRecentText}>No recent scans</Text>
+            </View>
+          )}
         </View>
 
         {/* Manual Input Field */}
         {showManualInput && (
           <View style={styles.manualInputContainer}>
+            <View style={styles.manualInputHeader}>
+              <Ionicons name="keypad-outline" size={24} color="#026A3D" />
+              <Text style={styles.manualInputTitle}>Manual Entry</Text>
+            </View>
             <TextInput
               style={styles.manualInput}
-              placeholder="Enter barcode (e.g., 5449000131805)"
+              placeholder="Enter barcode number"
+              placeholderTextColor="#9CA3AF"
               value={manualBarcode}
               onChangeText={setManualBarcode}
               keyboardType="numeric"
               editable={!loading && !isProcessing}
+              autoFocus
             />
+            <Text style={styles.manualInputHelp}>
+              Example: 5449000131805
+            </Text>
             <View style={styles.manualInputButtons}>
               <TouchableOpacity 
-                style={styles.manualSubmitButton}
+                style={[styles.manualSubmitButton, (!manualBarcode.trim() || loading || isProcessing) && styles.buttonDisabled]}
                 onPress={handleManualSubmit}
-                disabled={loading || isProcessing}
+                disabled={!manualBarcode.trim() || loading || isProcessing}
               >
+                {loading || isProcessing ? (
+                  <ActivityIndicator size={16} color="#FFFFFF" />
+                ) : (
+                  <Ionicons name="search" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+                )}
                 <Text style={styles.manualSubmitText}>
                   {loading || isProcessing ? 'Analyzing...' : 'Analyze Product'}
                 </Text>
@@ -431,12 +561,33 @@ export default function ScanScreen() {
           </View>
         )}
 
-        {/* Loading State */}
+        {/* Enhanced Loading State */}
         {(loading || analyzingHealth || isProcessing) && (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>
-              {loading || isProcessing ? '🔍 Fetching product data...' : '🤖 Analyzing health impact...'}
-            </Text>
+            <View style={styles.loadingCard}>
+              <View style={styles.loadingIconContainer}>
+                <ActivityIndicator size={40} color="#026A3D" />
+              </View>
+              <View style={styles.loadingTextContainer}>
+                <Text style={styles.loadingTitle}>
+                  {loading || isProcessing ? 'Fetching Product Data' : 'Analyzing Health Impact'}
+                </Text>
+                <Text style={styles.loadingSubtitle}>
+                  {loading || isProcessing ? 
+                    'Getting product information from our database...' : 
+                    'Our AI is analyzing nutritional content and health impact...'
+                  }
+                </Text>
+                <View style={styles.loadingProgress}>
+                  <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, (loading || isProcessing) ? styles.progressStep1 : styles.progressStep2]} />
+                  </View>
+                  <Text style={styles.progressText}>
+                    {loading || isProcessing ? 'Step 1 of 2' : 'Step 2 of 2'}
+                  </Text>
+                </View>
+              </View>
+            </View>
           </View>
         )}
 
@@ -625,7 +776,8 @@ export default function ScanScreen() {
           </ScrollView>
         </View>
       </Modal>
-    </SafeAreaView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -634,12 +786,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
-  header: {
+  fixedHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     backgroundColor: '#FFFFFF',
-    paddingTop: 20,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    zIndex: 100,
+  },
+  headerSafeArea: {
+    paddingTop: 16,
+    paddingBottom: 64,
   },
   headerContent: {
     flexDirection: 'row',
@@ -647,123 +804,360 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
   },
-  userSection: {
+  scrollableContent: {
+    flex: 1,
+  },
+  logoContainer: {
+    flex: 1,
+  },
+  logo: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#026A3D',
+    letterSpacing: -0.5,
+  },
+  headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 16,
+  },
+  profileButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#E7F5E7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  settingsButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullScreenCameraContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#000000',
+    zIndex: 1000,
+  },
+  cameraHeader: {
+    paddingTop: 8,
+    paddingHorizontal: 24,
+    paddingBottom: 16,
+  },
+  cameraBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraContent: {
     flex: 1,
+    paddingHorizontal: 24,
   },
-  userInfo: {
+  cameraTitleSection: {
+    alignItems: 'center',
+    marginBottom: 60,
+    marginTop: 40,
+  },
+  cameraTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  scannerArea: {
     flex: 1,
-  },
-  greeting: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 2,
-  },
-  userName: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  scannerContainer: {
-    flex: 1,
-    margin: 24,
+    position: 'relative',
     borderRadius: 16,
     overflow: 'hidden',
+    marginBottom: 40,
+  },
+  scanFrameOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  scanCorners: {
+    width: 300,
+    height: 220,
+    position: 'relative',
+  },
+  corner: {
+    position: 'absolute',
+    width: 32,
+    height: 32,
+    borderColor: '#FFFFFF',
+    borderWidth: 4,
+  },
+  topLeft: {
+    top: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    borderTopLeftRadius: 8,
+  },
+  topRight: {
+    top: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderBottomWidth: 0,
+    borderTopRightRadius: 8,
+  },
+  bottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 8,
+  },
+  bottomRight: {
+    bottom: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+    borderBottomRightRadius: 8,
+  },
+  cameraControls: {
+    alignItems: 'flex-end',
+    marginBottom: 40,
+  },
+  flashButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  flashButtonActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderColor: 'rgba(255, 255, 255, 1)',
   },
   mainContent: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingTop: 128,
   },
-  scanSection: {
+  heroSection: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    marginBottom: 24,
+    marginTop: 16,
+  },
+  scanButtonWrapper: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 40,
+  },
+  mainScanButton: {
+    width: 144,
+    height: 144,
+    borderRadius: 24,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 16,
+    zIndex: 10,
+    borderWidth: 4,
+    borderColor: '#026A3D',
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 8,
+  pulseRing1: {
+    position: 'absolute',
+    width: 184,
+    height: 184,
+    borderRadius: 32,
+    borderWidth: 2,
+    borderColor: 'rgba(2, 106, 61, 0.2)',
+    backgroundColor: 'rgba(2, 106, 61, 0.05)',
   },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 24,
-    lineHeight: 20,
+  pulseRing2: {
+    position: 'absolute',
+    width: 224,
+    height: 224,
+    borderRadius: 40,
+    borderWidth: 1,
+    borderColor: 'rgba(2, 106, 61, 0.1)',
+    backgroundColor: 'rgba(2, 106, 61, 0.02)',
   },
-  scanButton: {
-    backgroundColor: '#026A3D',
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-  },
-  scanButtonContent: {
-    flexDirection: 'row',
+  barcodeIconWrapper: {
+    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scanIconContainer: {
-    marginRight: 12,
-  },
-  scanButtonText: {
+  scanLabel: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 16,
+    textAlign: 'center',
   },
-  quickActions: {
+  scanSubtitle: {
+    fontSize: 16,
+    fontWeight: '400',
+    color: '#6B7280',
+    marginBottom: 32,
+    textAlign: 'center',
+    lineHeight: 24,
+    paddingHorizontal: 24,
+  },
+  scanLineAnimation: {
+    position: 'absolute',
+    top: '50%',
+    left: 8,
+    right: 8,
+    height: 2,
+    backgroundColor: '#026A3D',
+    opacity: 0.8,
+  },
+  scanButtonDisabled: {
+    backgroundColor: '#6B7280',
+    shadowOpacity: 0.1,
+  },
+  scanButtonContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recentScansSection: {
+    marginBottom: 24,
+    marginTop: -48,
+  },
+  recentScansHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    marginBottom: 16,
+  },
+  recentScansTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#026A3D',
+  },
+  recentScansScroll: {
+    paddingLeft: 8,
+  },
+  recentScanCard: {
+    width: 120,
+    marginRight: 16,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  productImagePlaceholder: {
+    width: 64,
+    height: 64,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  productName: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#374151',
+    textAlign: 'center',
+    marginBottom: 8,
+    lineHeight: 16,
+    minHeight: 32,
+  },
+  warningLevel: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 16,
+    minWidth: 32,
+    alignItems: 'center',
+  },
+  warningLevelText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  emptyRecentScans: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
   },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 16,
-  },
-  actionButton: {
-    alignItems: 'center',
-    padding: 16,
-    minWidth: 100,
-  },
-  actionButtonText: {
+  emptyRecentText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
-    marginTop: 8,
+    color: '#9CA3AF',
+    marginTop: 16,
   },
   manualInputContainer: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  manualInputHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  manualInputTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginLeft: 8,
   },
   manualInput: {
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#E5E7EB',
-    borderRadius: 8,
+    borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     fontSize: 16,
-    marginBottom: 16,
+    marginBottom: 8,
+    fontFamily: 'monospace',
+  },
+  manualInputHelp: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginBottom: 20,
+    fontStyle: 'italic',
   },
   manualInputButtons: {
     flexDirection: 'row',
@@ -772,9 +1166,15 @@ const styles = StyleSheet.create({
   manualSubmitButton: {
     flex: 1,
     backgroundColor: '#026A3D',
-    borderRadius: 8,
-    paddingVertical: 12,
+    borderRadius: 12,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#9CA3AF',
+    opacity: 0.6,
   },
   manualSubmitText: {
     color: '#FFFFFF',
@@ -784,8 +1184,8 @@ const styles = StyleSheet.create({
   manualCancelButton: {
     flex: 1,
     backgroundColor: '#F3F4F6',
-    borderRadius: 8,
-    paddingVertical: 12,
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   manualCancelText: {
@@ -794,16 +1194,65 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   loadingContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
-  loadingText: {
-    fontSize: 16,
+  loadingCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  loadingIconContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  loadingTextContainer: {
+    alignItems: 'center',
+  },
+  loadingTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  loadingSubtitle: {
+    fontSize: 14,
     color: '#6B7280',
     textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  loadingProgress: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  progressBar: {
+    width: '100%',
+    height: 6,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 3,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#026A3D',
+    borderRadius: 3,
+  },
+  progressStep1: {
+    width: '50%',
+  },
+  progressStep2: {
+    width: '100%',
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontWeight: '500',
   },
   resultsPreview: {
     backgroundColor: '#FFFFFF',

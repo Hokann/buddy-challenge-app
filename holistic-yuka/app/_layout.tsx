@@ -2,6 +2,7 @@
 import { Slot, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useAuth } from "./hooks/useAuth";
 
 export default function RootLayout() {
@@ -35,5 +36,9 @@ export default function RootLayout() {
   }
 
   // Render the current route
-  return <Slot />;
+  return (
+    <SafeAreaProvider>
+      <Slot />
+    </SafeAreaProvider>
+  );
 }

@@ -5,14 +5,18 @@ import { BarcodeData } from '../types/product';
 
 interface BarcodeScannerProps {
   onBarcodeScanned: (data: BarcodeData) => void;
-  onCancel: () => void;
+  onCancel?: () => void;
   scanned: boolean;
+  hideCancel?: boolean;
+  flashEnabled?: boolean;
 }
 
 export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
   onBarcodeScanned,
   onCancel,
   scanned,
+  hideCancel = false,
+  flashEnabled = false,
 }) => {
   return (
     <View style={styles.container}>
@@ -22,18 +26,21 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128", "code39"],
         }}
         onBarcodeScanned={scanned ? undefined : onBarcodeScanned}
+        enableTorch={flashEnabled}
       >
-        <View style={styles.overlay}>
-          <Text style={styles.text}>
-            {scanned ? 'Barcode scanned!' : 'Point camera at barcode'}
-          </Text>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onCancel}
-          >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
+        {!hideCancel && (
+          <View style={styles.overlay}>
+            <Text style={styles.text}>
+              {scanned ? 'Barcode scanned!' : 'Point camera at barcode'}
+            </Text>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={onCancel}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </CameraView>
     </View>
   );

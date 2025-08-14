@@ -25,30 +25,40 @@ export default function Welcome() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.appName}>Holsty</Text>
-        <Text style={styles.tagline}>Holistic Food Scanner</Text>
+        <Text style={styles.tagline}>See the whole picture</Text>
       </View>
 
       {/* Hero Section */}
       <View style={styles.heroSection}>
-        <View style={styles.iconPlaceholder}>
-          <Text style={styles.iconText}>🥗</Text>
+        <View style={styles.heroIllustration}>
+          <Text style={styles.phoneIcon}>📱</Text>
+          <Text style={styles.scanIcon}>🔍</Text>
+          <Text style={styles.productIcon}>📦</Text>
         </View>
         
         <Text style={styles.heroTitle}>Welcome to Holsty</Text>
         <Text style={styles.heroDescription}>
-          Scan and analyze your food with AI-powered insights. 
+          Discover what's really in your food with AI-powered scanning and personalized health insights.
         </Text>
       </View>
 
       {/* CTA Buttons */}
       <View style={styles.ctaSection}>
         <TouchableOpacity style={styles.primaryButton} onPress={handleCreateAccount}>
-          <Text style={styles.primaryButtonText}>Create Account</Text>
+          <Text style={styles.primaryButtonText}>Get Started</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.secondaryButton} onPress={handleSignIn}>
-          <Text style={styles.secondaryButtonText}>Sign In</Text>
-        </TouchableOpacity>
+      </View>
+
+      {/* Progress Indicator */}
+      <View style={styles.progressSection}>
+        <View style={styles.progressDots}>
+          <View style={[styles.dot, styles.activeDot]} />
+          <View style={styles.dot} />
+          <View style={styles.dot} />
+          <View style={styles.dot} />
+        </View>
+        <Text style={styles.progressText}>1 of 4</Text>
       </View>
     </ScrollView>
   );
@@ -86,17 +96,30 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  iconPlaceholder: {
-    width: 120,
-    height: 120,
+  heroIllustration: {
+    width: 200,
+    height: 160,
     backgroundColor: '#E7F5E7',
-    borderRadius: 60,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 40,
+    flexDirection: 'row',
+    position: 'relative',
   },
-  iconText: {
-    fontSize: 48,
+  phoneIcon: {
+    fontSize: 60,
+    marginRight: 10,
+  },
+  scanIcon: {
+    fontSize: 30,
+    position: 'absolute',
+    top: 20,
+    right: 30,
+  },
+  productIcon: {
+    fontSize: 40,
+    marginLeft: 10,
   },
   heroTitle: {
     fontSize: 28,
@@ -127,17 +150,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#026A3D',
-    borderRadius: 12,
-    paddingVertical: 16,
+  progressSection: {
     alignItems: 'center',
+    marginTop: 24,
   },
-  secondaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#026A3D',
+  progressDots: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#D1D5DB',
+    marginHorizontal: 4,
+  },
+  activeDot: {
+    backgroundColor: '#026A3D',
+  },
+  progressText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
   },
 });
