@@ -496,9 +496,9 @@ export default function ScanScreen() {
                   <Text style={styles.productName} numberOfLines={2}>
                     {scan.product?.product_name_en || scan.product?.product_name || 'Unknown Product'}
                   </Text>
-                  <View style={[styles.warningLevel, { backgroundColor: getScoreColor(scan.analysis?.overall_health_score || 50) }]}>
+                  <View style={[styles.warningLevel, { backgroundColor: getScoreColor(scan.analysis?.overall_score || 50) }]}>
                     <Text style={styles.warningLevelText}>
-                      {scan.analysis?.overall_health_score ? Math.round(scan.analysis.overall_health_score) : '?'}
+                      {scan.analysis?.overall_score ? Math.round(scan.analysis.overall_score) : '?'}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -1300,6 +1300,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#1F2937',
+    maxWidth: '80%',
   },
   closeButton: {
     width: 32,
