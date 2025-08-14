@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { HealthAnalysis as HealthAnalysisType } from '../types/healthAnalysis';
+import { getScoreColor } from '../utils/scoreUtils';
 
 interface HealthAnalysisProps {
   analysis: HealthAnalysisType | null;
@@ -21,11 +22,6 @@ export const HealthAnalysis: React.FC<HealthAnalysisProps> = ({ analysis, loadin
     return null;
   }
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return '#34C759'; // Green
-    if (score >= 60) return '#FF9500'; // Orange
-    return '#FF3B30'; // Red
-  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {

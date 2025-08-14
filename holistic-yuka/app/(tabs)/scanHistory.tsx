@@ -15,7 +15,9 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { HealthAnalysis } from '../components/HealthAnalysis';
 import { ProductDisplay } from '../components/ProductDisplay';
+import { ScanListItem } from '../components/ScanListItem';
 import { useScanHistory, ScanHistoryItem } from '../hooks/useScanHistory';
+import { formatDate } from '../utils/dateUtils';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../supabaseConfig';
 
@@ -101,67 +103,12 @@ export default function ScanHistoryScreen() {
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return '#34C759';
-    if (score >= 60) return '#FF9500';
-    return '#FF3B30';
-  };
-
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   const renderScanItem = ({ item }: { item: ScanHistoryItem }) => (
-    <TouchableOpacity 
-      style={styles.scanItem}
-      onPress={() => openScanDetail(item)}
-    >
-      <View style={styles.scanItemHeader}>
-        <View style={styles.productInfo}>
-          <Text style={styles.productName} numberOfLines={2}>
-            {item.product?.product_name_en || 
-             item.product?.product_name || 
-             'Unknown Product'}
-          </Text>
-          {item.product?.brands && (
-            <Text style={styles.productBrand} numberOfLines={1}>
-              {item.product.brands}
-            </Text>
-          )}
-        </View>
-        
-        {item.analysis?.overall_score && (
-          <View style={styles.scoreContainer}>
-            <Text style={[
-              styles.scoreText, 
-              { color: getScoreColor(item.analysis.overall_score) }
-            ]}>
-              {item.analysis.overall_score}
-            </Text>
-            <Text style={styles.scoreLabel}>score</Text>
-          </View>
-        )}
-      </View>
-      
-      <View style={styles.scanItemFooter}>
-        <Text style={styles.barcodeText}>📊 {item.barcode}</Text>
-        <Text style={styles.timestampText}>
-          {formatDate(item.timestamp)}
-        </Text>
-      </View>
-      
-      <TouchableOpacity 
-        style={styles.removeButton}
-        onPress={() => handleRemoveScan(item.id)}
-      >
-        <Text style={styles.removeButtonText}>×</Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
+    <ScanListItem
+      item={item}
+      onPress={openScanDetail}
+      onRemove={handleRemoveScan}
+    />
   );
 
   if (loading) {

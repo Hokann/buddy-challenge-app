@@ -26,6 +26,9 @@ import { useAuth } from '../hooks/useAuth';
 import { openFoodFactsService } from '../services/openFoodFacts';
 import { geminiAIService } from '../services/geminiAI';
 import { supabase } from '../supabaseConfig';
+import { getScoreColor } from '../utils/scoreUtils';
+import { formatDate } from '../utils/dateUtils';
+import { ScanListItem } from '../components/ScanListItem';
 
 export default function ScanScreen() {
   const [showManualInput, setShowManualInput] = useState(false);
@@ -300,67 +303,12 @@ export default function ScanScreen() {
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return '#34C759';
-    if (score >= 60) return '#FF9500';
-    return '#FF3B30';
-  };
-
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   const renderScanItem = ({ item }: { item: ScanHistoryItem }) => (
-    <TouchableOpacity 
-      style={styles.scanItem}
-      onPress={() => openScanDetail(item)}
-    >
-      <View style={styles.scanItemHeader}>
-        <View style={styles.productInfo}>
-          <Text style={styles.productItemName} numberOfLines={2}>
-            {item.product?.product_name_en || 
-             item.product?.product_name || 
-             'Unknown Product'}
-          </Text>
-          {item.product?.brands && (
-            <Text style={styles.productBrandItem} numberOfLines={1}>
-              {item.product.brands}
-            </Text>
-          )}
-        </View>
-        
-        {item.analysis?.overall_score && (
-          <View style={styles.scoreContainer}>
-            <Text style={[
-              styles.scoreText, 
-              { color: getScoreColor(item.analysis.overall_score) }
-            ]}>
-              {item.analysis.overall_score}
-            </Text>
-            <Text style={styles.scoreLabel}>score</Text>
-          </View>
-        )}
-      </View>
-      
-      <View style={styles.scanItemFooter}>
-        <Text style={styles.barcodeText}>📊 {item.barcode}</Text>
-        <Text style={styles.timestampText}>
-          {formatDate(item.timestamp)}
-        </Text>
-      </View>
-      
-      <TouchableOpacity 
-        style={styles.removeButton}
-        onPress={() => handleRemoveScan(item.id)}
-      >
-        <Text style={styles.removeButtonText}>×</Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
+    <ScanListItem
+      item={item}
+      onPress={openScanDetail}
+      onRemove={handleRemoveScan}
+    />
   );
 
   if (showCamera) {
@@ -1000,81 +948,6 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 16,
-  },
-  scanItem: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    position: 'relative',
-  },
-  scanItemHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  productInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  productItemName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  productBrandItem: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  scoreContainer: {
-    alignItems: 'center',
-    minWidth: 60,
-  },
-  scoreText: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  scoreLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  scanItemFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  barcodeText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    fontFamily: 'monospace',
-  },
-  timestampText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  removeButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#FEE2E2',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  removeButtonText: {
-    fontSize: 16,
-    color: '#DC2626',
-    fontWeight: '600',
   },
   scanMetadata: {
     backgroundColor: '#FFFFFF',
