@@ -17,7 +17,12 @@ const FIELDS = [
   'image_url',
   'image_front_url',
   'countries_en',
-  'manufacturing_places_en'
+  'manufacturing_places_en',
+  'allergens_en',
+  'additives_tags',
+  'energy_kcal_100g',
+  'labels_en',
+  'serving_size'
 ].join(',');
 
 export const openFoodFactsService = {

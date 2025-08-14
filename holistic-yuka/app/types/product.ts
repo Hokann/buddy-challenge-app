@@ -41,5 +41,17 @@ export interface Product {
   ingredients_text_en?: string;
   image_url?: string;
   image_front_url?: string;
+  allergens_en?: string;
+  additives_tags?: string[];
+  energy_kcal_100g?: number;
+  labels_en?: string;
+  serving_size?: string;
   [key: string]: any;
+}
+
+export interface ProductResponse {
+  status: number;
+  code?: string;
+  product?: Product;
+  status_verbose?: string;
 }
