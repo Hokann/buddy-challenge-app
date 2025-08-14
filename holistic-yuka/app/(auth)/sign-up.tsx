@@ -37,8 +37,8 @@ export default function SignUp() {
       console.log('🔄 SignUp: Clearing onboarding status...')
       // Clear any existing onboarding status for new user
       await clearOnboardingStatus()
-      console.log('🚀 SignUp: Navigating to diet preference page')
-      router.push('/(auth)/diet-preference')
+      console.log('⏸️ SignUp: Onboarding cleared, letting layout handle navigation')
+      // Don't manually navigate - let the layout handle it after auth state changes
     }
   }
 

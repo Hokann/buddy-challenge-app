@@ -21,9 +21,10 @@ export default function DietPreference() {
   const handleNext = () => {
     console.log('🥗 DietPreference: Next button pressed')
     console.log('🥗 DietPreference: Selected diet:', selectedDiet || 'None selected')
-    // TODO: Save to Supabase when ready
     console.log('🚀 DietPreference: Navigating to allergy preference')
-    router.push('/(auth)/allergy-preference')
+    // Pass the selected diet to the allergy page via URL params
+    const dietParam = selectedDiet === 'None' || !selectedDiet ? 'null' : selectedDiet
+    router.push(`/(auth)/allergy-preference?diet=${encodeURIComponent(dietParam)}`)
   }
 
   console.log('🥗 DietPreference: Component rendered')

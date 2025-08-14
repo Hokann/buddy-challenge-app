@@ -1,6 +1,8 @@
-import { useRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useState } from 'react'
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { useAuth } from '../hooks/useAuth'
+import { supabase } from '../supabaseConfig'
 import { setOnboardingComplete } from '../utils/onboarding'
 
 const ALLERGY_OPTIONS = [
@@ -18,7 +20,10 @@ const ALLERGY_OPTIONS = [
 
 export default function AllergyPreference() {
   const [selectedAllergies, setSelectedAllergies] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
+  const { user } = useAuth()
   const router = useRouter()
+  const { diet } = useLocalSearchParams<{ diet: string }>()
 
   const toggleAllergy = (allergy: string) => {
     const isSelected = selectedAllergies.includes(allergy)
@@ -34,12 +39,57 @@ export default function AllergyPreference() {
   const handleNext = async () => {
     console.log('🚫 AllergyPreference: Complete Setup button pressed')
     console.log('🚫 AllergyPreference: Selected allergies:', selectedAllergies)
-    // TODO: Save to Supabase when ready
-    console.log('🔄 AllergyPreference: Marking onboarding as complete...')
-    // Mark onboarding as complete
-    await setOnboardingComplete()
-    console.log('🚀 AllergyPreference: Navigating to scan page')
-    router.replace('/(tabs)/scan')
+    console.log('🚫 AllergyPreference: Diet from previous page:', diet)
+    
+    if (!user) {
+      console.error('🚫 AllergyPreference: No user found')
+      Alert.alert('Error', 'No user found')
+      return
+    }
+
+    setLoading(true)
+    
+    try {
+      // Prepare the values for database
+      const dietValue = diet === 'null' || !diet ? null : diet
+      const allergiesValue = selectedAllergies.length > 0 ? selectedAllergies : null
+      
+      console.log('🚫 AllergyPreference: Saving to database:', { 
+        userId: user.id, 
+        diet: dietValue, 
+        allergies: allergiesValue 
+      })
+      
+      // Single database update with both diet and allergies
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          diet: dietValue,
+          allergies: allergiesValue
+        })
+        .eq('id', user.id)
+
+      if (error) {
+        console.error('🚫 AllergyPreference: Database error:', error)
+        Alert.alert('Error', 'Failed to save preferences')
+        return
+      }
+
+      console.log('✅ AllergyPreference: Preferences saved successfully')
+      console.log('🔄 AllergyPreference: Marking onboarding as complete...')
+      
+      // Mark onboarding as complete
+      await setOnboardingComplete()
+      
+      console.log('🚀 AllergyPreference: Navigating to scan page')
+      router.replace('/(tabs)/scan')
+      
+    } catch (error) {
+      console.error('🚫 AllergyPreference: Error in handleNext:', error)
+      Alert.alert('Error', 'Something went wrong')
+    } finally {
+      setLoading(false)
+    }
   }
 
   console.log('🚫 AllergyPreference: Component rendered')
@@ -71,8 +121,14 @@ export default function AllergyPreference() {
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-            <Text style={styles.nextButtonText}>Complete Setup</Text>
+          <TouchableOpacity 
+            style={[styles.nextButton, loading && styles.buttonDisabled]} 
+            onPress={handleNext}
+            disabled={loading}
+          >
+            <Text style={styles.nextButtonText}>
+              {loading ? 'Saving...' : 'Complete Setup'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -140,6 +196,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   nextButtonText: {
     color: '#FFFFFF',
