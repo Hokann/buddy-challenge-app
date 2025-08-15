@@ -133,6 +133,8 @@ export default function ScanScreen() {
         setProduct(null);
         setHealthAnalysis(null);
         Alert.alert('Product Not Found', 'This barcode is not in the database.');
+        // Emit event to show tab bar since scan process is complete
+        DeviceEventEmitter.emit('cameraClosed');
         return;
       }
       
@@ -171,6 +173,9 @@ export default function ScanScreen() {
       } else {
         Alert.alert('Error', `Failed to process scan: ${errorMessage}`);
       }
+      
+      // Emit event to show tab bar since scan process is complete (even with error)
+      DeviceEventEmitter.emit('cameraClosed');
     }
   };
 
