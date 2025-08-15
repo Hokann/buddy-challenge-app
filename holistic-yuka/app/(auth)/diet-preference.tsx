@@ -6,11 +6,8 @@ const DIET_OPTIONS = [
   'None',
   'Vegetarian',
   'Vegan',
-  'Pescatarian',
   'Keto',
-  'Paleo',
-  'Mediterranean',
-  'Low Carb',
+  'Dairy Free',
   'Gluten Free'
 ]
 
