@@ -17,14 +17,7 @@ export const useBarcode = () => {
   const [scanned, setScanned] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const getCameraPermissions = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    };
-
-    getCameraPermissions();
-  }, []);
+  // Removed automatic permission request - permissions are now only requested when needed in startScanning()
 
   const fetchProductData = async (barcodeValue?: string) => {
     const barcodeToUse = barcodeValue || barcode;
@@ -101,17 +94,19 @@ export const useBarcode = () => {
     fetchProductData(data);
   };
 
-  const startScanning = () => {
-    if (hasPermission === null) {
-      Alert.alert('Permission', 'Requesting camera permission...');
-      return;
+  const startScanning = async () => {
+    // Request permissions only when scanning is initiated
+    const { status } = await Camera.requestCameraPermissionsAsync();
+    setHasPermission(status === 'granted');
+    
+    if (status !== 'granted') {
+      Alert.alert('Camera Permission Required', 'Please allow camera access to scan barcodes');
+      return false;
     }
-    if (hasPermission === false) {
-      Alert.alert('No Access', 'Camera permission denied');
-      return;
-    }
+    
     setScanned(false);
     setShowCamera(true);
+    return true;
   };
 
   const clearData = () => {

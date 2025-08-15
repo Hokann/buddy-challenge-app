@@ -244,13 +244,21 @@ export default function ScanScreen() {
     }, 1000);
   };
 
-  const startNewScan = () => {
+  const startNewScan = async () => {
     // Clear previous state
     lastProcessedBarcode.current = '';
     setIsProcessing(false);
-    startScanning();
+    
     // Emit event to hide tab bar
     DeviceEventEmitter.emit('cameraOpened');
+    
+    // Try to start scanning
+    const success = await startScanning();
+    
+    // If scanning failed (e.g., permissions denied), show tab bar again
+    if (!success) {
+      DeviceEventEmitter.emit('cameraClosed');
+    }
   };
 
   const toggleFlash = () => {
