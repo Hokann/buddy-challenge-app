@@ -32,7 +32,8 @@ export const openFoodFactsService = {
       console.log('Fetching from:', url);
       
       const response = await fetch(url);
-      
+      console.log('Fetch Response:', response);
+
       if (!response.ok) {
         throw new Error(`API Request Failed with status: ${response.status}`);
       }
