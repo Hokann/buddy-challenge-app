@@ -117,15 +117,15 @@ export const ProductDisplay: React.FC<ProductDisplayProps> = ({
             {product.nutriments.energy && (
               <View style={styles.nutritionItem}>
                 <Text style={styles.nutritionValue}>
-                  {Math.round(Number(product.nutriments.energy))} kJ
+                  {Math.round(Number(product.nutriments.energy) * 0.239)} cal
                 </Text>
-                <Text style={styles.nutritionLabel}>Energy</Text>
+                <Text style={styles.nutritionLabel}>Calories</Text>
               </View>
             )}
             {product.nutriments.sugars_100g && (
               <View style={styles.nutritionItem}>
                 <Text style={styles.nutritionValue}>
-                  {product.nutriments.sugars_100g}g
+                  {Math.round(Number(product.nutriments.sugars_100g))}g
                 </Text>
                 <Text style={styles.nutritionLabel}>Sugar</Text>
               </View>
@@ -133,7 +133,7 @@ export const ProductDisplay: React.FC<ProductDisplayProps> = ({
             {product.nutriments.salt_100g && (
               <View style={styles.nutritionItem}>
                 <Text style={styles.nutritionValue}>
-                  {product.nutriments.salt_100g}g
+                  {Math.round(Number(product.nutriments.salt_100g) * 10) / 10}g
                 </Text>
                 <Text style={styles.nutritionLabel}>Salt</Text>
               </View>
@@ -141,9 +141,17 @@ export const ProductDisplay: React.FC<ProductDisplayProps> = ({
             {product.nutriments.fat_100g && (
               <View style={styles.nutritionItem}>
                 <Text style={styles.nutritionValue}>
-                  {product.nutriments.fat_100g}g
+                  {Math.round(Number(product.nutriments.fat_100g))}g
                 </Text>
                 <Text style={styles.nutritionLabel}>Fat</Text>
+              </View>
+            )}
+            {product.nutriments.proteins_100g && (
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>
+                  {Math.round(Number(product.nutriments.proteins_100g))}g
+                </Text>
+                <Text style={styles.nutritionLabel}>Protein</Text>
               </View>
             )}
           </View>

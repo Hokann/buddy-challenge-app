@@ -12,8 +12,11 @@ export const HealthAnalysis: React.FC<HealthAnalysisProps> = ({ analysis, loadin
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>🤖 Analyzing product health...</Text>
+        <ActivityIndicator size="large" color="#026A3D" />
+        <Text style={styles.loadingTitle}>✨ Creating your personalized analysis</Text>
+        <Text style={styles.loadingSubtext}>
+          We're checking this product against your dietary preferences and health goals to give you the most relevant insights
+        </Text>
       </View>
     );
   }
@@ -106,12 +109,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
-  },
-  loadingText: {
+    backgroundColor: 'white',
+    borderRadius: 12,
     marginTop: 16,
-    fontSize: 16,
-    color: '#666',
+  },
+  loadingTitle: {
+    marginTop: 20,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#026A3D',
     textAlign: 'center',
+    marginBottom: 12,
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 16,
   },
   title: {
     fontSize: 20,

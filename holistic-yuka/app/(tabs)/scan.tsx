@@ -96,12 +96,20 @@ export default function ScanScreen() {
   const { addScanToHistory, scanHistory, loading: historyLoading, clearHistory, removeScanFromHistory, refreshHistory } = useScanHistory();
   const { user, signOut } = useAuth();
 
-  // Auto-open modal when analysis is complete
+  // Auto-open modal when product is found (don't wait for analysis)
   useEffect(() => {
-    if (product && healthAnalysis && !analyzingHealth && !isProcessing) {
+    console.log('Modal useEffect triggered:', { 
+      product: !!product, 
+      isProcessing, 
+      showAnalysisModal,
+      productName: product?.product_name_en || product?.product_name || 'No name'
+    });
+    
+    if (product && !showAnalysisModal) {
+      console.log('Step 1.5: Opening modal with product:', product.product_name_en || product.product_name);
       setShowAnalysisModal(true);
     }
-  }, [product, healthAnalysis, analyzingHealth, isProcessing]);
+  }, [product, showAnalysisModal]);
 
   // Listen for scan trigger from tab bar
   useEffect(() => {
@@ -121,6 +129,7 @@ export default function ScanScreen() {
       setProduct(null);
       setHealthAnalysis(null);
       setAnalyzingHealth(false);
+      setShowAnalysisModal(false);
       
       // Step 1: Set the barcode
       setBarcode(barcodeValue);
@@ -141,6 +150,7 @@ export default function ScanScreen() {
       const productData = productResponse.product;
       setProduct(productData);
       console.log('Step 1 complete: Product data fetched');
+      console.log('Step 1.5: Product state set, modal should popup now');
       
       // Step 3: Analyze health
       console.log('Step 2: Analyzing health...');
@@ -239,6 +249,10 @@ export default function ScanScreen() {
 
   const closeModal = () => {
     setShowAnalysisModal(false);
+    // Clear product state to prevent modal from reopening
+    setProduct(null);
+    setHealthAnalysis(null);
+    setAnalyzingHealth(false);
     // Reset the camera for next scan
     setShowCamera(false);
     // Emit event to show tab bar
@@ -247,12 +261,17 @@ export default function ScanScreen() {
     setTimeout(() => {
       lastProcessedBarcode.current = '';
     }, 1000);
+    console.log('Modal closed and product state cleared');
   };
 
   const startNewScan = async () => {
     // Clear previous state
     lastProcessedBarcode.current = '';
     setIsProcessing(false);
+    setProduct(null);
+    setHealthAnalysis(null);
+    setShowAnalysisModal(false);
+    console.log('Step 0: Starting new scan, cleared previous state');
     
     // Emit event to hide tab bar
     DeviceEventEmitter.emit('cameraOpened');
@@ -704,49 +723,7 @@ export default function ScanScreen() {
           </View>
         )}
 
-        {/* Enhanced Loading State */}
-        {(loading || analyzingHealth || isProcessing) && (
-          <View style={styles.loadingContainer}>
-            <View style={styles.loadingCard}>
-              <View style={styles.loadingIconContainer}>
-                <ActivityIndicator size={40} color="#026A3D" />
-              </View>
-              <View style={styles.loadingTextContainer}>
-                <Text style={styles.loadingTitle}>
-                  {loading || isProcessing ? 'Fetching Product Data' : 'Analyzing Health Impact'}
-                </Text>
-                <Text style={styles.loadingSubtitle}>
-                  {loading || isProcessing ? 
-                    'Getting product information from our database...' : 
-                    'Our AI is analyzing nutritional content and health impact...'
-                  }
-                </Text>
-                <View style={styles.loadingProgress}>
-                  <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, (loading || isProcessing) ? styles.progressStep1 : styles.progressStep2]} />
-                  </View>
-                  <Text style={styles.progressText}>
-                    {loading || isProcessing ? 'Step 1 of 2' : 'Step 2 of 2'}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
 
-        {/* Quick Results Preview */}
-        {product && !showAnalysisModal && !loading && !analyzingHealth && !isProcessing && (
-          <TouchableOpacity 
-            style={styles.resultsPreview}
-            onPress={() => setShowAnalysisModal(true)}
-          >
-            <Text style={styles.previewTitle}>📦 Product Found</Text>
-            <Text style={styles.previewProduct}>
-              {product.product_name_en || product.product_name || 'Unknown Product'}
-            </Text>
-            <Text style={styles.previewAction}>Tap to view full analysis →</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* Analysis Modal */}
@@ -765,7 +742,21 @@ export default function ScanScreen() {
           
           <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
             {product && <ProductDisplay product={product} showRawJson={false} />}
-            <HealthAnalysis analysis={healthAnalysis} loading={analyzingHealth} />
+            
+            {/* Analysis Loading State */}
+            {analyzingHealth && (
+              <View style={styles.analysisLoadingCard}>
+                <View style={styles.analysisLoadingContent}>
+                  <ActivityIndicator size="large" color="#026A3D" />
+                  <Text style={styles.analysisLoadingTitle}>✨ Creating your personalized analysis</Text>
+                  <Text style={styles.analysisLoadingSubtext}>
+                    We're checking this product against your dietary preferences and health goals to give you the most relevant insights
+                  </Text>
+                </View>
+              </View>
+            )}
+            
+            {!analyzingHealth && <HealthAnalysis analysis={healthAnalysis} loading={false} />}
           </ScrollView>
         </View>
       </Modal>
@@ -956,7 +947,7 @@ export default function ScanScreen() {
           </View>
 
           {historyLoading ? (
-            <View style={styles.loadingContainer}>
+            <View style={styles.emptyState}>
               <ActivityIndicator size="large" color="#026A3D" />
               <Text style={styles.loadingText}>Loading scan history...</Text>
             </View>
@@ -1460,67 +1451,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  loadingContainer: {
-    marginBottom: 24,
-  },
-  loadingCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  loadingIconContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  loadingTextContainer: {
-    alignItems: 'center',
-  },
-  loadingTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  loadingSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  loadingProgress: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  progressBar: {
-    width: '100%',
-    height: 6,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 3,
-    marginBottom: 8,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#026A3D',
-    borderRadius: 3,
-  },
-  progressStep1: {
-    width: '50%',
-  },
-  progressStep2: {
-    width: '100%',
-  },
-  progressText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    fontWeight: '500',
-  },
   resultsPreview: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
@@ -1583,6 +1513,36 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     flex: 1,
+  },
+  analysisLoadingCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginHorizontal: 24,
+    marginVertical: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  analysisLoadingContent: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  analysisLoadingTitle: {
+    marginTop: 20,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#026A3D',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  analysisLoadingSubtext: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 16,
   },
   profileContent: {
     padding: 24,
