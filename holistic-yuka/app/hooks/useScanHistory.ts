@@ -2,7 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
-import { supabase } from '../supabaseConfig';
+import { supabase } from '../supabase/supabaseConfig';
 import { HealthAnalysis } from '../types/healthAnalysis';
 import { Product } from '../types/product';
 

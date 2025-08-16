@@ -19,7 +19,7 @@ import { ScanListItem } from '../components/ScanListItem';
 import { useScanHistory, ScanHistoryItem } from '../hooks/useScanHistory';
 import { formatDate } from '../utils/dateUtils';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../supabaseConfig';
+import { supabase } from '../supabase/supabaseConfig';
 
 export default function ScanHistoryScreen() {
   const [selectedScan, setSelectedScan] = useState<ScanHistoryItem | null>(null);

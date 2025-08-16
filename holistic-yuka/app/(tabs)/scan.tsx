@@ -26,7 +26,7 @@ import { useScanHistory, ScanHistoryItem } from '../hooks/useScanHistory';
 import { useAuth } from '../hooks/useAuth';
 import { openFoodFactsService } from '../services/openFoodFacts';
 import { geminiAIService } from '../services/geminiAI';
-import { supabase } from '../supabaseConfig';
+import { supabase } from '../supabase/supabaseConfig';
 import { getScoreColor } from '../utils/scoreUtils';
 import { formatDate } from '../utils/dateUtils';
 import { ScanListItem } from '../components/ScanListItem';

@@ -1,6 +1,6 @@
 // services/auth.ts
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '../supabaseConfig';
+import { supabase } from '../supabase/supabaseConfig';
 
 export interface AuthResult {
   user: User | null;

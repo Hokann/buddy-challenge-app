@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../supabaseConfig'
+import { supabase } from '../supabase/supabaseConfig'
 import { setOnboardingComplete } from '../utils/onboarding'
 
 const ALLERGY_OPTIONS = [
