@@ -1,37 +1,21 @@
-// Function signature for Gemini analysis (to be implemented)
 import { createClient } from 'npm:@supabase/supabase-js@2'
-
-async function sendToGemini(
-  dietPreferences: string[],
-  allergens: string[],
-  ingredientsText: string
-): Promise<{
-  success: boolean;
-  analysis?: any;
-  error?: string;
-}> {
-  // Implementation will go here
-  throw new Error('sendToGemini not implemented yet')
-}
+import { classifyProduct } from './product-classification.ts';
 
 Deno.serve(async (req) => {
   try {
     // 1. Receive the OpenFoodFacts product JSON
     const requestData = await req.json();
-    
     // Extract product and user_id from request
     const product = requestData.product || requestData;
     const userId = requestData.user_id;
-    
     if (!userId) {
       throw new Error('user_id is required');
     }
-    
     // Check if ingredients_text exists, use "none listed" as fallback
     const ingredientsText = product.ingredients_text_en || 
                            product.ingredients_text || 
                            "none listed";
-
+    
     // 2. Fetch user preferences from Supabase
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? 'http://127.0.0.1:54321',
@@ -46,17 +30,14 @@ Deno.serve(async (req) => {
     if (profileError) {
       throw new Error(`Failed to fetch user profile: ${profileError.message}`);
     }
-
     if (!profiles || profiles.length === 0) {
       throw new Error(`No profile found for user: ${userId}`);
     }
-
     if (profiles.length > 1) {
       throw new Error(`Multiple profiles found for user: ${userId}`);
     }
 
     const profile = profiles[0];
-
     // Extract diet and allergens
     // Handle diet as either string or array for flexibility
     const dietPreferences = Array.isArray(profile.diet) 
@@ -64,17 +45,21 @@ Deno.serve(async (req) => {
       : (profile.diet ? [profile.diet] : []);
     const allergens = profile.allergies || [];
 
+
+
+
     // 3. Call sendToGemini function
-    /*const analysisResult = await sendToGemini(
+    const classificationResult = await classifyProduct(
       dietPreferences,
       allergens,
       ingredientsText
-    );*/
+    );
 
     // Return the response
     return new Response(JSON.stringify({
       success: true,
-      product_name: product.product_name || product.product_name_en,
+      userId: userId,
+      product_name: product.product_name_en || product.product_name,
       user_preferences: {
         diet: dietPreferences,
         allergens: allergens
@@ -93,23 +78,3 @@ Deno.serve(async (req) => {
     });
   }
 });
-// 101372bd-d678-4d37-a004-da061399d5a0
-
-
-/*
-curl -X POST http://localhost:54321/functions/v1/analyzeProduct \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "user_id": "101372bd-d678-4d37-a004-da061399d5a0",
-    "product": {
-      "product_name": "Chocolate Chip Cookies",
-      "product_name_en": "Chocolate Chip Cookies",
-      "ingredients_text": "wheat flour, sugar, butter, chocolate chips (sugar, cocoa butter, milk powder), eggs",
-      "ingredients_text_en": "wheat flour, sugar, butter, chocolate chips (sugar, cocoa butter, milk powder), eggs",
-      "code": "1234567890",
-      "brands": "Test Brand"
-    }
-  }'
-  */
-
