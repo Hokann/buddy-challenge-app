@@ -31,7 +31,6 @@ import { formatDate } from '../utils/dateUtils';
 import { ScanListItem } from '../components/ScanListItem';
 
 const DIET_OPTIONS = [
-  'None',
   'Vegetarian',
   'Vegan',
   'Pescatarian',
@@ -39,7 +38,8 @@ const DIET_OPTIONS = [
   'Paleo',
   'Mediterranean',
   'Low Carb',
-  'Gluten Free'
+  'Gluten Free',
+  'Dairy Free'
 ];
 
 const ALLERGY_OPTIONS = [
@@ -67,10 +67,10 @@ export default function ScanScreen() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [flashEnabled, setFlashEnabled] = useState(false);
-  const [userPreferences, setUserPreferences] = useState<{diet: string | null, allergies: string[] | null}>({diet: null, allergies: null});
+  const [userPreferences, setUserPreferences] = useState<{diet: string[] | null, allergies: string[] | null}>({diet: null, allergies: null});
   const [loadingPreferences, setLoadingPreferences] = useState(false);
   const [editingPreferences, setEditingPreferences] = useState(false);
-  const [editedDiet, setEditedDiet] = useState<string | null>(null);
+  const [editedDiet, setEditedDiet] = useState<string[]>([]);
   const [editedAllergies, setEditedAllergies] = useState<string[]>([]);
   const [savingPreferences, setSavingPreferences] = useState(false);
   
@@ -385,7 +385,7 @@ export default function ScanScreen() {
   // Preferences editing handlers
   const startEditingPreferences = () => {
     console.log('📝 Scan: Starting preferences editing');
-    setEditedDiet(userPreferences.diet || 'None');
+    setEditedDiet(userPreferences.diet || []);
     setEditedAllergies(userPreferences.allergies || []);
     setEditingPreferences(true);
   };
@@ -393,8 +393,19 @@ export default function ScanScreen() {
   const cancelEditingPreferences = () => {
     console.log('❌ Scan: Cancelling preferences editing');
     setEditingPreferences(false);
-    setEditedDiet(null);
+    setEditedDiet([]);
     setEditedAllergies([]);
+  };
+
+  const toggleDiet = (diet: string) => {
+    const isSelected = editedDiet.includes(diet);
+    if (isSelected) {
+      console.log('🥗 Scan: Deselected diet:', diet);
+      setEditedDiet(prev => prev.filter(d => d !== diet));
+    } else {
+      console.log('🥗 Scan: Selected diet:', diet);
+      setEditedDiet(prev => [...prev, diet]);
+    }
   };
 
   const toggleAllergy = (allergy: string) => {
@@ -418,7 +429,7 @@ export default function ScanScreen() {
     setSavingPreferences(true);
 
     try {
-      const dietValue = editedDiet === 'None' ? null : editedDiet;
+      const dietValue = editedDiet.length > 0 ? editedDiet : null;
       const allergiesValue = editedAllergies.length > 0 ? editedAllergies : null;
 
       const { error } = await supabase
@@ -846,20 +857,21 @@ export default function ScanScreen() {
                   <View style={styles.editingContainer}>
                     {/* Diet Selection */}
                     <View style={styles.editSection}>
-                      <Text style={styles.editSectionTitle}>Diet Preference</Text>
+                      <Text style={styles.editSectionTitle}>Diet Preferences</Text>
+                      <Text style={styles.editSectionSubtitle}>Select all that apply</Text>
                       <View style={styles.optionsContainer}>
                         {DIET_OPTIONS.map((diet) => (
                           <TouchableOpacity
                             key={diet}
                             style={[
                               styles.optionChip,
-                              editedDiet === diet && styles.selectedOptionChip
+                              editedDiet.includes(diet) && styles.selectedOptionChip
                             ]}
-                            onPress={() => setEditedDiet(diet)}
+                            onPress={() => toggleDiet(diet)}
                           >
                             <Text style={[
                               styles.optionChipText,
-                              editedDiet === diet && styles.selectedOptionChipText
+                              editedDiet.includes(diet) && styles.selectedOptionChipText
                             ]}>
                               {diet}
                             </Text>
@@ -920,10 +932,18 @@ export default function ScanScreen() {
                   /* Display Mode */
                   <>
                     <View style={styles.preferenceItem}>
-                      <Text style={styles.label}>Diet:</Text>
-                      <Text style={styles.preferenceValue}>
-                        {userPreferences.diet || 'None specified'}
-                      </Text>
+                      <Text style={styles.label}>Diet Preferences:</Text>
+                      {userPreferences.diet && userPreferences.diet.length > 0 ? (
+                        <View style={styles.allergiesList}>
+                          {userPreferences.diet.map((diet, index) => (
+                            <View key={index} style={styles.dietTag}>
+                              <Text style={styles.dietText}>{diet}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      ) : (
+                        <Text style={styles.preferenceValue}>None specified</Text>
+                      )}
                     </View>
 
                     <View style={styles.preferenceItem}>
@@ -1656,6 +1676,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#DC2626',
+  },
+  dietTag: {
+    backgroundColor: '#E7F5E7',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  dietText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#026A3D',
   },
   // Editing Mode Styles
   editingContainer: {

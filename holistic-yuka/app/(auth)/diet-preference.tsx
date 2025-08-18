@@ -3,24 +3,39 @@ import React, { useState } from 'react'
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const DIET_OPTIONS = [
-  'None',
   'Vegetarian',
   'Vegan',
   'Keto',
   'Dairy Free',
-  'Gluten Free'
+  'Gluten Free',
+  'Pescatarian',
+  'Paleo',
+  'Mediterranean',
+  'Low Carb'
 ]
 
 export default function DietPreference() {
-  const [selectedDiet, setSelectedDiet] = useState<string | null>(null)
+  const [selectedDiets, setSelectedDiets] = useState<string[]>([])
   const router = useRouter()
+
+  const toggleDiet = (diet: string) => {
+    setSelectedDiets(prev => {
+      if (prev.includes(diet)) {
+        console.log('🥗 DietPreference: Deselected diet:', diet)
+        return prev.filter(d => d !== diet)
+      } else {
+        console.log('🥗 DietPreference: Selected diet:', diet)
+        return [...prev, diet]
+      }
+    })
+  }
 
   const handleNext = () => {
     console.log('🥗 DietPreference: Next button pressed')
-    console.log('🥗 DietPreference: Selected diet:', selectedDiet || 'None selected')
+    console.log('🥗 DietPreference: Selected diets:', selectedDiets)
     console.log('🚀 DietPreference: Navigating to allergy preference')
-    // Pass the selected diet to the allergy page via URL params
-    const dietParam = selectedDiet === 'None' || !selectedDiet ? 'null' : selectedDiet
+    // Pass the selected diets to the allergy page via URL params
+    const dietParam = selectedDiets.length > 0 ? selectedDiets.join(',') : 'null'
     router.push(`/(auth)/allergy-preference?diet=${encodeURIComponent(dietParam)}`)
   }
 
@@ -29,8 +44,8 @@ export default function DietPreference() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Diet Preference</Text>
-        <Text style={styles.subtitle}>Choose your dietary preference</Text>
+        <Text style={styles.title}>Diet Preferences</Text>
+        <Text style={styles.subtitle}>Choose all dietary preferences that apply to you</Text>
         
         <View style={styles.optionsContainer}>
           {DIET_OPTIONS.map((diet) => (
@@ -38,22 +53,27 @@ export default function DietPreference() {
               key={diet}
               style={[
                 styles.option,
-                selectedDiet === diet && styles.selectedOption
+                selectedDiets.includes(diet) && styles.selectedOption
               ]}
-              onPress={() => {
-                console.log('🥗 DietPreference: Selected diet option:', diet)
-                setSelectedDiet(diet)
-              }}
+              onPress={() => toggleDiet(diet)}
             >
               <Text style={[
                 styles.optionText,
-                selectedDiet === diet && styles.selectedOptionText
+                selectedDiets.includes(diet) && styles.selectedOptionText
               ]}>
                 {diet}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
+        
+        {selectedDiets.length > 0 && (
+          <View style={styles.selectionSummary}>
+            <Text style={styles.summaryText}>
+              Selected: {selectedDiets.join(', ')}
+            </Text>
+          </View>
+        )}
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
@@ -116,6 +136,18 @@ const styles = StyleSheet.create({
   },
   selectedOptionText: {
     color: '#FFFFFF',
+  },
+  selectionSummary: {
+    backgroundColor: '#E7F5E7',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  summaryText: {
+    fontSize: 14,
+    color: '#026A3D',
+    fontWeight: '500',
+    textAlign: 'center',
   },
   buttonContainer: {
     marginTop: 20,

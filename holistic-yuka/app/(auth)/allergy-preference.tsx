@@ -51,7 +51,7 @@ export default function AllergyPreference() {
     
     try {
       // Prepare the values for database
-      const dietValue = diet === 'null' || !diet ? null : diet
+      const dietValue = diet === 'null' || !diet ? null : diet.split(',')
       const allergiesValue = selectedAllergies.length > 0 ? selectedAllergies : null
       
       console.log('🚫 AllergyPreference: Saving to database:', { 
