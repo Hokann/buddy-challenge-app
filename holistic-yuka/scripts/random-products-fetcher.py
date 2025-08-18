@@ -12,9 +12,22 @@ import logging
 from typing import List, Dict, Any
 import argparse
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Configure logging for JSON output
+class JSONFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            'timestamp': self.formatTime(record),
+            'level': record.levelname,
+            'message': record.getMessage(),
+            'module': record.module
+        }
+        return json.dumps(log_record)
+
 logger = logging.getLogger(__name__)
+handler = logging.StreamHandler()
+handler.setFormatter(JSONFormatter())
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 class RandomProductsFetcher:
     def __init__(self):
@@ -31,7 +44,12 @@ class RandomProductsFetcher:
         attempts = 0
         max_attempts = count * 3  # Allow more attempts to get desired count
         
-        logger.info(f"Fetching {count} random English products...")
+        fetch_start_info = {
+            'action': 'fetch_start',
+            'requested_count': count,
+            'max_attempts': max_attempts
+        }
+        logger.info(json.dumps(fetch_start_info))
         
         while len(products) < count and attempts < max_attempts:
             try:
@@ -47,19 +65,34 @@ class RandomProductsFetcher:
                     'fields': 'code,product_name,product_name_en,ingredients_text,ingredients_text_en,brands,categories,nutriscore_grade,nova_group'
                 }
                 
-                logger.info(f"Fetching from page {page} (attempt {attempts + 1}/{max_attempts})")
+                fetch_attempt_info = {
+                    'action': 'fetch_attempt',
+                    'page': page,
+                    'attempt': attempts + 1,
+                    'max_attempts': max_attempts
+                }
+                logger.info(json.dumps(fetch_attempt_info))
                 
                 response = requests.get(self.base_url, params=params, timeout=30)
                 response.raise_for_status()
                 
                 # Log the raw API response
-                logger.info(f"API Response Status: {response.status_code}")
-                logger.info(f"API Response Headers: {dict(response.headers)}")
+                api_response_data = {
+                    'api_response_status': response.status_code,
+                    'api_response_headers': dict(response.headers),
+                    'page_number': page,
+                    'attempt': attempts + 1
+                }
+                logger.info(json.dumps(api_response_data))
                 
                 data = response.json()
                 page_products = data.get('products', [])
                 
-                logger.info(f"Raw API Response: {json.dumps(data, indent=2)}")
+                raw_response_data = {
+                    'raw_api_response': data,
+                    'products_count': len(page_products)
+                }
+                logger.info(json.dumps(raw_response_data))
                 
                 # Filter for English products
                 for product in page_products:
@@ -75,35 +108,69 @@ class RandomProductsFetcher:
                     
                     if has_english:
                         products.append(product)
-                        logger.info(f"Added product {len(products)}: {product.get('product_name_en', product.get('product_name', 'Unknown'))}")
+                        product_added_data = {
+                            'action': 'product_added',
+                            'product_number': len(products),
+                            'product_name': product.get('product_name_en', product.get('product_name', 'Unknown')),
+                            'product_code': product.get('code')
+                        }
+                        logger.info(json.dumps(product_added_data))
                 
                 attempts += 1
                 time.sleep(self.rate_limit_delay)
                 
             except requests.exceptions.RequestException as e:
-                logger.error(f"Error fetching products: {e}")
+                request_error = {
+                    'action': 'request_error',
+                    'error_message': str(e),
+                    'error_type': type(e).__name__,
+                    'attempt': attempts + 1
+                }
+                logger.error(json.dumps(request_error))
                 attempts += 1
                 time.sleep(1)  # Wait longer on error
                 continue
             except ValueError as e:
-                logger.error(f"Error parsing JSON: {e}")
+                json_error = {
+                    'action': 'json_parse_error',
+                    'error_message': str(e),
+                    'error_type': type(e).__name__,
+                    'attempt': attempts + 1
+                }
+                logger.error(json.dumps(json_error))
                 attempts += 1
                 continue
         
-        logger.info(f"Successfully fetched {len(products)} products out of {count} requested")
+        fetch_summary = {
+            'action': 'fetch_completed',
+            'products_fetched': len(products),
+            'products_requested': count,
+            'success': True
+        }
+        logger.info(json.dumps(fetch_summary))
         return products[:count]  # Return exactly the requested count
     
     def log_product_details(self, products: List[Dict[str, Any]]) -> None:
         """Log detailed information about each product."""
         for i, product in enumerate(products, 1):
-            logger.info(f"Full product data: {json.dumps(product, indent=2)}")
+            product_detail = {
+                'action': 'product_detail',
+                'product_index': i,
+                'product_data': product
+            }
+            logger.info(json.dumps(product_detail))
     
     def save_products_json(self, products: List[Dict[str, Any]], filename: str = 'random_products.json') -> None:
         """Save products to JSON file."""
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(products, f, indent=2, ensure_ascii=False)
         
-        logger.info(f"Saved {len(products)} products to {filename}")
+        save_info = {
+            'action': 'file_saved',
+            'products_count': len(products),
+            'filename': filename
+        }
+        logger.info(json.dumps(save_info))
     
     def fetch_and_log(self, count: int = 10, save_file: bool = True) -> List[Dict[str, Any]]:
         """Main method to fetch random products and log responses."""
@@ -116,17 +183,29 @@ class RandomProductsFetcher:
                 if save_file:
                     self.save_products_json(products)
                 
-                logger.info(f"\n=== SUMMARY ===")
-                logger.info(f"Total products fetched: {len(products)}")
-                logger.info(f"Products with English names: {sum(1 for p in products if p.get('product_name_en'))}")
-                logger.info(f"Products with English ingredients: {sum(1 for p in products if p.get('ingredients_text_en'))}")
+                summary = {
+                    'action': 'final_summary',
+                    'total_products_fetched': len(products),
+                    'products_with_english_names': sum(1 for p in products if p.get('product_name_en')),
+                    'products_with_english_ingredients': sum(1 for p in products if p.get('ingredients_text_en'))
+                }
+                logger.info(json.dumps(summary))
             else:
-                logger.warning("No products were fetched")
+                warning = {
+                    'action': 'warning',
+                    'message': 'No products were fetched'
+                }
+                logger.warning(json.dumps(warning))
             
             return products
             
         except Exception as e:
-            logger.error(f"Error in fetch_and_log: {e}")
+            error_info = {
+                'action': 'error',
+                'message': f"Error in fetch_and_log: {e}",
+                'error_type': type(e).__name__
+            }
+            logger.error(json.dumps(error_info))
             return []
 
 def main():
@@ -141,13 +220,29 @@ def main():
     
     fetcher = RandomProductsFetcher()
     
-    logger.info("Starting random products fetcher...")
+    start_info = {
+        'action': 'start',
+        'message': 'Starting random products fetcher',
+        'requested_count': args.count,
+        'save_file': not args.no_save
+    }
+    logger.info(json.dumps(start_info))
+    
     products = fetcher.fetch_and_log(count=args.count, save_file=not args.no_save)
     
     if products:
-        logger.info("Fetch completed successfully!")
+        completion_info = {
+            'action': 'completion',
+            'message': 'Fetch completed successfully',
+            'products_retrieved': len(products)
+        }
+        logger.info(json.dumps(completion_info))
     else:
-        logger.error("No products were fetched")
+        error_info = {
+            'action': 'error',
+            'message': 'No products were fetched'
+        }
+        logger.error(json.dumps(error_info))
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,57 @@
+[
+  {
+    "brands": "Grandessa",
+    "categories": "Breakfasts,Spreads,Sweet spreads,Bee products,Farming products,Sweeteners,Honeys",
+    "code": "4088600313030",
+    "ingredients_text": "honey",
+    "ingredients_text_en": "honey",
+    "nova_group": 2,
+    "nutriscore_grade": "d",
+    "product_name": "Honey",
+    "product_name_en": "Honey"
+  },
+  {
+    "brands": "Graze",
+    "categories": "Snacks, Marmite snack, Marmite-snack, en:peanuts",
+    "code": "5055958704161",
+    "ingredients_text": "Fried corn, fried broad beans, sunflower oil, marmite seasoning (yeast extract, rice flour, salt, natural flavouring, onion powder, acid: citric acid, garlic powder, sunflower oil, maltodextrin, vitamins (Niacin, Thiamin, Riboflavin, Vitamin B12, Folic acid)).",
+    "ingredients_text_en": "Fried corn, fried broad beans, sunflower oil, marmite seasoning (yeast extract, rice flour, salt, natural flavouring, onion powder, acid: citric acid, garlic powder, sunflower oil, maltodextrin, vitamins (Niacin, Thiamin, Riboflavin, Vitamin B12, Folic acid)).",
+    "nova_group": 4,
+    "nutriscore_grade": "b",
+    "product_name": "Graze Marmite Crunch",
+    "product_name_en": "Graze Marmite Crunch"
+  },
+  {
+    "brands": "Manomasa",
+    "categories": "Snacks, Salty snacks, Appetizers, Chips and fries, Crisps, Corn chips",
+    "code": "5017764003395",
+    "ingredients_text": "Whole white corn flour, vegetable oils (rapeseed, sunflower), smoked paprika, pumpkin seeds, dried red pepper, sugar, millet seeds, sea salt, dried lime juice, flavouring, acid: citric acid, dried onion, smoked rice flour, dried garlic, dried yeast extract, dried chilli, ground cumin, ground guajillo chilli, dried spirit vinegar, chipotle extract, paprika extract.",
+    "ingredients_text_en": "Whole white corn flour, vegetable oils (rapeseed, sunflower), smoked paprika, pumpkin seeds, dried red pepper, sugar, millet seeds, sea salt, dried lime juice, flavouring, acid: citric acid, dried onion, smoked rice flour, dried garlic, dried yeast extract, dried chilli, ground cumin, ground guajillo chilli, dried spirit vinegar, chipotle extract, paprika extract.",
+    "nova_group": 4,
+    "nutriscore_grade": "c",
+    "product_name": "Chipotle & lime",
+    "product_name_en": "Chipotle & lime"
+  },
+  {
+    "brands": "Maille",
+    "categories": "Condiments, Sauces, Moutardes",
+    "code": "8720182557315",
+    "ingredients_text": "Moutarde de Dijon 52% (eau, graines de MOUTARDE, vinaigre d'alcool, sel, acidifiant : acide citrique, conservateur : DISULFITE de potassium), huile de colza, moutarde à l'ancienne 18% (vinaigre d'alcool, graines de MOUTARDE, eau, sel, sucre, arôme naturel), vin blanc 1,9%, amidon modifié de pomme de terre, eau, farine de MOUTARDE, épaississant : gomme xanthane, sel, épices (dont CÉLERI).",
+    "ingredients_text_en": "dijon mustard 52% (water, mustard seeds, spirit vinegar, salt, acidifier: citric acid, preservative: potassium disulfite), rapeseed oil, whole-grain mustard 18% (spirit vinegar, mustard seeds, water, salt, sugar, natural flavouring), white wine 1.9%, modified potato starch, water, mustard flour, thickener: xanthan gum, salt, spices (including celery),",
+    "nova_group": 4,
+    "nutriscore_grade": "e",
+    "product_name": "Maille mout fin gour 320g",
+    "product_name_en": "Maille mout fin gour 320g"
+  },
+  {
+    "brands": "Grandessa",
+    "categories": "Plant-based foods and beverages,Plant-based foods,Legumes and their products,Spreads,Nuts and their products,Plant-based spreads,Oilseed purees,Legume butters,Nut butters,Peanut butters,Crunchy peanut butters",
+    "code": "4061464727830",
+    "ingredients_text": "Peanuts (100%)",
+    "ingredients_text_en": "Peanuts (100%)",
+    "nova_group": 1,
+    "nutriscore_grade": "unknown",
+    "product_name": "Crunchy Peanut Butter",
+    "product_name_en": "Crunchy Peanut Butter"
+  }
+]
