@@ -38,7 +38,8 @@ const DIET_OPTIONS = [
   'Paleo',
   'Mediterranean',
   'Low Carb',
-  'Gluten Free'
+  'Gluten Free',
+  'Dairy Free'
 ];
 
 const ALLERGY_OPTIONS = [
