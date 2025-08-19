@@ -1,5 +1,4 @@
-export async function classifyProduct(
-  dietPreferences: any,
+export async function analyzeAllergens(
   allergens: string,
   ingredientsText: any
 ): Promise<any> {

@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { classifyProduct } from './product-classification.ts';
+import { analyzeDiet } from './analyze-diet.ts';
+import { analyzeAllergens } from './analyze-allergens.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -49,11 +50,15 @@ Deno.serve(async (req) => {
 
 
     // 3. Call sendToGemini function
-    const classificationResult = await classifyProduct(
-      dietPreferences,
+    const allergenAnalysis = await analyzeAllergens(
       allergens,
       ingredientsText
     );
+    
+    const dietAnalysis = await analyzeDiet(
+      dietPreferences,
+      ingredientsText
+    )
 
     // Return the response
     return new Response(JSON.stringify({
