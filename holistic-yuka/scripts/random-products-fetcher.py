@@ -62,7 +62,7 @@ class RandomProductsFetcher:
                     'page': page,
                     'page_size': 20,
                     'json': 1,
-                    'fields': 'code,product_name,product_name_en,ingredients_text,ingredients_text_en,brands,categories,nutriscore_grade,nova_group'
+                    'fields': 'code,product_name,product_name_en,ingredients_text,ingredients_text_en,brands,categories,nutriscore_grade,nova_group,traces,traces_tags,allergens,allergens_tags,allergens_from_ingredients,allergens_from_user'
                 }
                 
                 fetch_attempt_info = {
@@ -160,10 +160,38 @@ class RandomProductsFetcher:
             }
             logger.info(json.dumps(product_detail))
     
+    def reorder_product_fields(self, product: Dict[str, Any]) -> Dict[str, Any]:
+        """Reorder product fields to place allergen fields after traces."""
+        # Define the desired field order
+        field_order = [
+            'code', 'product_name', 'product_name_en', 'ingredients_text', 'ingredients_text_en',
+            'brands', 'categories', 'nutriscore_grade', 'nova_group',
+            'traces', 'traces_tags',
+            'allergens', 'allergens_tags', 'allergens_from_ingredients', 'allergens_from_user'
+        ]
+        
+        # Create ordered dictionary with fields in desired order
+        ordered_product = {}
+        
+        # Add fields in specified order if they exist
+        for field in field_order:
+            if field in product:
+                ordered_product[field] = product[field]
+        
+        # Add any remaining fields that weren't in our order list
+        for key, value in product.items():
+            if key not in ordered_product:
+                ordered_product[key] = value
+        
+        return ordered_product
+
     def save_products_json(self, products: List[Dict[str, Any]], filename: str = 'random_products.json') -> None:
-        """Save products to JSON file."""
+        """Save products to JSON file with reordered fields."""
+        # Reorder fields in each product
+        reordered_products = [self.reorder_product_fields(product) for product in products]
+        
         with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(products, f, indent=2, ensure_ascii=False)
+            json.dump(reordered_products, f, indent=2, ensure_ascii=False)
         
         save_info = {
             'action': 'file_saved',

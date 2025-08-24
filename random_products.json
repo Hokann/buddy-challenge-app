@@ -1,57 +1,103 @@
 [
   {
-    "brands": "Grandessa",
-    "categories": "Breakfasts,Spreads,Sweet spreads,Bee products,Farming products,Sweeteners,Honeys",
-    "code": "4088600313030",
-    "ingredients_text": "honey",
-    "ingredients_text_en": "honey",
-    "nova_group": 2,
-    "nutriscore_grade": "d",
-    "product_name": "Honey",
-    "product_name_en": "Honey"
-  },
-  {
-    "brands": "Graze",
-    "categories": "Snacks, Marmite snack, Marmite-snack, en:peanuts",
-    "code": "5055958704161",
-    "ingredients_text": "Fried corn, fried broad beans, sunflower oil, marmite seasoning (yeast extract, rice flour, salt, natural flavouring, onion powder, acid: citric acid, garlic powder, sunflower oil, maltodextrin, vitamins (Niacin, Thiamin, Riboflavin, Vitamin B12, Folic acid)).",
-    "ingredients_text_en": "Fried corn, fried broad beans, sunflower oil, marmite seasoning (yeast extract, rice flour, salt, natural flavouring, onion powder, acid: citric acid, garlic powder, sunflower oil, maltodextrin, vitamins (Niacin, Thiamin, Riboflavin, Vitamin B12, Folic acid)).",
-    "nova_group": 4,
-    "nutriscore_grade": "b",
-    "product_name": "Graze Marmite Crunch",
-    "product_name_en": "Graze Marmite Crunch"
-  },
-  {
-    "brands": "Manomasa",
-    "categories": "Snacks, Salty snacks, Appetizers, Chips and fries, Crisps, Corn chips",
-    "code": "5017764003395",
-    "ingredients_text": "Whole white corn flour, vegetable oils (rapeseed, sunflower), smoked paprika, pumpkin seeds, dried red pepper, sugar, millet seeds, sea salt, dried lime juice, flavouring, acid: citric acid, dried onion, smoked rice flour, dried garlic, dried yeast extract, dried chilli, ground cumin, ground guajillo chilli, dried spirit vinegar, chipotle extract, paprika extract.",
-    "ingredients_text_en": "Whole white corn flour, vegetable oils (rapeseed, sunflower), smoked paprika, pumpkin seeds, dried red pepper, sugar, millet seeds, sea salt, dried lime juice, flavouring, acid: citric acid, dried onion, smoked rice flour, dried garlic, dried yeast extract, dried chilli, ground cumin, ground guajillo chilli, dried spirit vinegar, chipotle extract, paprika extract.",
-    "nova_group": 4,
+    "code": "3338310001279",
+    "product_name": "Lasagnes de bœuf à la crème de mozzarella",
+    "ingredients_text": "Crème de mozzarella 26,6% (eau, crème, lait écrémé, mozzarella 4,5%, fécule de manioc, huile de tournesol, sel, muscade), tomates concassées 25,8%, pâtes fraîches 10,2% (semoule de blé dur, eau, œuf frais), viande de bœuf race Limousine origine France 9,8% (viande de bœuf précuite 7,2%, viande de bœuf 2,6%), eau, oignons, carottes, emmental, huile de tournesol, champignons, double concentré de tomate 1,7%, basilic, sel, fécule de manioc, ail, plantes aromatiques, poivre.",
+    "brands": "Maison Tino",
+    "categories": "Viandes et dérivés, Plats préparés, Plats à base de pâtes, Plats préparés à la viande, Lasagnes préparées, Plats au bœuf, Réfrigérés, en:Meat lasagnas, Plats préparés réfrigérés, Lasagnes à la bolognaise",
     "nutriscore_grade": "c",
-    "product_name": "Chipotle & lime",
-    "product_name_en": "Chipotle & lime"
+    "nova_group": 3,
+    "traces": "en:celery,en:crustaceans,en:fish,en:molluscs,en:mustard,en:soybeans",
+    "traces_tags": [
+      "en:celery",
+      "en:crustaceans",
+      "en:fish",
+      "en:molluscs",
+      "en:mustard",
+      "en:soybeans"
+    ],
+    "allergens": "en:eggs,en:gluten,en:milk",
+    "allergens_tags": [
+      "en:eggs",
+      "en:gluten",
+      "en:milk"
+    ],
+    "allergens_from_ingredients": "en:milk, en:eggs, en:gluten, en:milk, en:milk, en:milk, crème, lait écrémé, mozzarella, œuf frais, emmental",
+    "allergens_from_user": "(fr) en:eggs,en:gluten,en:milk"
   },
   {
-    "brands": "Maille",
-    "categories": "Condiments, Sauces, Moutardes",
-    "code": "8720182557315",
-    "ingredients_text": "Moutarde de Dijon 52% (eau, graines de MOUTARDE, vinaigre d'alcool, sel, acidifiant : acide citrique, conservateur : DISULFITE de potassium), huile de colza, moutarde à l'ancienne 18% (vinaigre d'alcool, graines de MOUTARDE, eau, sel, sucre, arôme naturel), vin blanc 1,9%, amidon modifié de pomme de terre, eau, farine de MOUTARDE, épaississant : gomme xanthane, sel, épices (dont CÉLERI).",
-    "ingredients_text_en": "dijon mustard 52% (water, mustard seeds, spirit vinegar, salt, acidifier: citric acid, preservative: potassium disulfite), rapeseed oil, whole-grain mustard 18% (spirit vinegar, mustard seeds, water, salt, sugar, natural flavouring), white wine 1.9%, modified potato starch, water, mustard flour, thickener: xanthan gum, salt, spices (including celery),",
+    "code": "3421557604089",
+    "product_name": "Tartines craquantes au sarrasin",
+    "product_name_en": "",
+    "ingredients_text": "Sarrasin* 82%, riz*, sucre de canne*, sel, *Ingrédients issus de l'Agriculture Biologique, Fabriquées dans un atelier qui utilise des fruits à coque et du lait,",
+    "ingredients_text_en": "buckwheat* 82%, rice*, cane sugar*, salt, *ingredients from organic farming, made in a workshop that uses nuts and milk,",
+    "brands": "Terres et céréales Bio",
+    "categories": "Aliments et boissons à base de végétaux, Aliments d'origine végétale, Snacks, Céréales et pommes de terre, Tartines craquantes extrudées",
+    "nutriscore_grade": "b",
+    "nova_group": 3,
+    "traces": "en:milk,en:nuts",
+    "traces_tags": [
+      "en:milk",
+      "en:nuts"
+    ],
+    "allergens": "",
+    "allergens_tags": [],
+    "allergens_from_ingredients": "",
+    "allergens_from_user": "(en) "
+  },
+  {
+    "code": "3456300008999",
+    "product_name": "Tartines craquantes quinoa pois chiche",
+    "product_name_en": "Tartines craquantes quinoa pois chiche",
+    "ingredients_text": "Farine de riz* semi-complet, farine de quinoa* 12%, farine de pois chiche* 9%, farine de maïs*, sel marin.\r\n*Produits issus de l'agriculture biologique.",
+    "ingredients_text_en": "semi-complete rice flour*, quinoa flour* 12%, chickpea flour* 9%, corn flour*, sea salt,\r\n*products from organic farming,",
+    "brands": "Jardin bio",
+    "categories": "Aliments et boissons à base de végétaux, Aliments d'origine végétale, Snacks, Céréales et pommes de terre, Tartines craquantes extrudées",
+    "nutriscore_grade": "b",
+    "nova_group": 3,
+    "traces": "",
+    "traces_tags": [],
+    "allergens": "",
+    "allergens_tags": [],
+    "allergens_from_ingredients": "",
+    "allergens_from_user": "(en) "
+  },
+  {
+    "code": "3497911219251",
+    "product_name": "Chips nature Ancienne",
+    "product_name_en": "Chips nature Ancienne",
+    "ingredients_text": "potatoes (france) 61,7%, sunflower oil 37%, guérande salt 1,3%",
+    "ingredients_text_en": "potatoes (france) 61,7%, sunflower oil 37%, guérande salt 1,3%",
+    "brands": "Bret's",
+    "categories": "Aliments et boissons à base de végétaux,Aliments d'origine végétale,Snacks,Céréales et pommes de terre,Snacks salés,Amuse-gueules,Chips et frites,Chips,Chips de pommes de terre,Chips à l'ancienne,Chips de pommes de terre à l'huile de tournesol",
+    "nutriscore_grade": "d",
+    "nova_group": 3,
+    "traces": "en:celery,en:milk,en:mustard",
+    "traces_tags": [
+      "en:celery",
+      "en:milk",
+      "en:mustard"
+    ],
+    "allergens": "",
+    "allergens_tags": [],
+    "allergens_from_ingredients": "",
+    "allergens_from_user": "(fr) "
+  },
+  {
+    "code": "3551720039421",
+    "product_name": "Purethé citron",
+    "ingredients_text": "95% dleau de source, sucre liquide*, 1,8% d'infusion de thé vert* (eau, infusion intense de thé vert), 0,5% de jus de fruits à base de concentrés* (0,4% de citron, 0,1% d'orange), acidifiant : acide citrique, arôme naturel de thé, antioxydant : acide ascorbique, extrait d'orange*, stabilisant : farine de graines de caroube, arôme naturel de citron. *produits issus de l'agriculture biologique",
+    "brands": "PureThé",
+    "categories": "Boissons, Boissons avec sucre ajouté",
+    "nutriscore_grade": "c",
     "nova_group": 4,
-    "nutriscore_grade": "e",
-    "product_name": "Maille mout fin gour 320g",
-    "product_name_en": "Maille mout fin gour 320g"
-  },
-  {
-    "brands": "Grandessa",
-    "categories": "Plant-based foods and beverages,Plant-based foods,Legumes and their products,Spreads,Nuts and their products,Plant-based spreads,Oilseed purees,Legume butters,Nut butters,Peanut butters,Crunchy peanut butters",
-    "code": "4061464727830",
-    "ingredients_text": "Peanuts (100%)",
-    "ingredients_text_en": "Peanuts (100%)",
-    "nova_group": 1,
-    "nutriscore_grade": "unknown",
-    "product_name": "Crunchy Peanut Butter",
-    "product_name_en": "Crunchy Peanut Butter"
+    "traces": "",
+    "traces_tags": [],
+    "allergens": "",
+    "allergens_tags": [
+      "en:orange"
+    ],
+    "allergens_from_ingredients": "orange*",
+    "allergens_from_user": "(fr) "
   }
 ]

@@ -1,0 +1,38 @@
+[
+  {
+    "code": "4032549018105",
+    "product_name": "Körniger Frischkäse 33 % Fett",
+    "product_name_en": "Tworog",
+    "ingredients_text": "pasteurisierte Kuhmilch, Milchsäurebakterien",
+    "ingredients_text_en": "",
+    "brands": "DOVGAN Family, Dovgan",
+    "categories": "Milchprodukte, Fermentierte Lebensmittel, Fermentierte Milch, Käse, Frischkäse",
+    "nutriscore_grade": "b",
+    "nova_group": 3,
+    "traces": "",
+    "traces_tags": [],
+    "allergens": "en:milk",
+    "allergens_tags": [
+      "en:milk"
+    ],
+    "allergens_from_ingredients": "en:milk",
+    "allergens_from_user": "(de) en:milk"
+  },
+  {
+    "code": "3254550047658",
+    "product_name": "Fromage frais vanille",
+    "ingredients_text": "Fromage frais 93% (lait de vache pasteurisé (origine : France), ferments (lait)), extrait de vanille 6,99% (arôme naturel de vanille (origine : Madagascar), sucre, amidon de maïs, caramel), graines de vanille épuisées 0,01% (origine : hors UE).",
+    "brands": "Isigny Ste Mère",
+    "categories": "Produits laitiers, Produits fermentés, Desserts, Produits laitiers fermentés, Fromages, Desserts lactés, Desserts lactés fermentés, Fromages à pâte fraîche, Fromages à la crème, Fromage blanc vanillé",
+    "nutriscore_grade": "c",
+    "nova_group": 4,
+    "traces": "",
+    "traces_tags": [],
+    "allergens": "en:milk",
+    "allergens_tags": [
+      "en:milk"
+    ],
+    "allergens_from_ingredients": "en:milk, en:milk, Fromage frais, lait",
+    "allergens_from_user": "(fr) en:milk, en:milk"
+  }
+]
